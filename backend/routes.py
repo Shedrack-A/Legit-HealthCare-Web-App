@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from .models import User, Patient, Consultation
+from .models import User, Patient, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry
 from . import db
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -195,3 +195,111 @@ def get_consultation(current_user, patient_id):
 
     consultation_data = {key: getattr(consultation, key) for key in consultation.__table__.columns.keys()}
     return jsonify(consultation_data)
+
+# Helper function for creating/updating test results
+def create_or_update_test_result(model, patient_id):
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'No input data provided'}), 400
+
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        return jsonify({'message': 'Patient not found'}), 404
+
+    result = model.query.filter_by(patient_id=patient.id).first()
+    if not result:
+        result = model(patient_id=patient.id)
+        db.session.add(result)
+
+    for key, value in data.items():
+        if hasattr(result, key) and key != 'patient_id':
+            setattr(result, key, value)
+
+    db.session.commit()
+    return jsonify({'message': 'Test result saved successfully'}), 200
+
+# Helper function for getting test results
+def get_test_result(model, patient_id):
+    result = model.query.filter_by(patient_id=patient_id).first()
+    if not result:
+        return jsonify({'message': 'Test result not found'}), 404
+
+    result_data = {key: getattr(result, key) for key in result.__table__.columns.keys()}
+    return jsonify(result_data)
+
+# --- Full Blood Count ---
+@bp.route('/test-results/full-blood-count/<int:patient_id>', methods=['POST'])
+@token_required
+def save_fbc(current_user, patient_id):
+    return create_or_update_test_result(FullBloodCount, patient_id)
+
+@bp.route('/test-results/full-blood-count/<int:patient_id>', methods=['GET'])
+@token_required
+def get_fbc(current_user, patient_id):
+    return get_test_result(FullBloodCount, patient_id)
+
+# --- Kidney Function Test ---
+@bp.route('/test-results/kidney-function-test/<int:patient_id>', methods=['POST'])
+@token_required
+def save_kft(current_user, patient_id):
+    return create_or_update_test_result(KidneyFunctionTest, patient_id)
+
+@bp.route('/test-results/kidney-function-test/<int:patient_id>', methods=['GET'])
+@token_required
+def get_kft(current_user, patient_id):
+    return get_test_result(KidneyFunctionTest, patient_id)
+
+# --- Lipid Profile ---
+@bp.route('/test-results/lipid-profile/<int:patient_id>', methods=['POST'])
+@token_required
+def save_lp(current_user, patient_id):
+    return create_or_update_test_result(LipidProfile, patient_id)
+
+@bp.route('/test-results/lipid-profile/<int:patient_id>', methods=['GET'])
+@token_required
+def get_lp(current_user, patient_id):
+    return get_test_result(LipidProfile, patient_id)
+
+# --- Liver Function Test ---
+@bp.route('/test-results/liver-function-test/<int:patient_id>', methods=['POST'])
+@token_required
+def save_lft(current_user, patient_id):
+    return create_or_update_test_result(LiverFunctionTest, patient_id)
+
+@bp.route('/test-results/liver-function-test/<int:patient_id>', methods=['GET'])
+@token_required
+def get_lft(current_user, patient_id):
+    return get_test_result(LiverFunctionTest, patient_id)
+
+# --- ECG ---
+@bp.route('/test-results/ecg/<int:patient_id>', methods=['POST'])
+@token_required
+def save_ecg(current_user, patient_id):
+    return create_or_update_test_result(ECG, patient_id)
+
+@bp.route('/test-results/ecg/<int:patient_id>', methods=['GET'])
+@token_required
+def get_ecg(current_user, patient_id):
+    return get_test_result(ECG, patient_id)
+
+# --- Spirometry ---
+@bp.route('/test-results/spirometry/<int:patient_id>', methods=['POST'])
+@token_required
+def save_spirometry(current_user, patient_id):
+    return create_or_update_test_result(Spirometry, patient_id)
+
+@bp.route('/test-results/spirometry/<int:patient_id>', methods=['GET'])
+@token_required
+def get_spirometry(current_user, patient_id):
+    return get_test_result(Spirometry, patient_id)
+
+# --- Audiometry ---
+@bp.route('/test-results/audiometry/<int:patient_id>', methods=['POST'])
+@token_required
+def save_audiometry(current_user, patient_id):
+    return create_or_update_test_result(Audiometry, patient_id)
+
+@bp.route('/test-results/audiometry/<int:patient_id>', methods=['GET'])
+@token_required
+def get_audiometry(current_user, patient_id):
+    return get_test_result(Audiometry, patient_id)
