@@ -183,3 +183,24 @@ class Audiometry(db.Model):
     patient = db.relationship('Patient', back_populates='audiometry')
     audiometry_result = db.Column(db.Text)
     audiometry_remark = db.Column(db.Text)
+
+class ScreeningBioData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_comprehensive_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    patient_comprehensive = db.relationship('Patient', backref='screening_records')
+
+    # Year-specific Patient ID, unique for that year and company section
+    patient_id_for_year = db.Column(db.String(50), nullable=False)
+
+    screening_year = db.Column(db.Integer, nullable=False)
+    company_section = db.Column(db.String(10), nullable=False) # 'DCP' or 'DCT'
+
+    date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('patient_id_for_year', 'screening_year', 'company_section', name='_patient_id_year_company_uc'),
+        db.UniqueConstraint('patient_comprehensive_id', 'screening_year', 'company_section', name='_patient_comprehensive_year_company_uc'),
+    )
+
+    def __repr__(self):
+        return f'<ScreeningBioData for Patient {self.patient_comprehensive_id} in {self.screening_year}>'

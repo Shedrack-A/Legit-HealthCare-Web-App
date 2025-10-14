@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request, current_app
-from .models import User, Patient, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry
+from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry
 from . import db
 import jwt
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from functools import wraps
+from sqlalchemy import func
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -303,3 +304,139 @@ def save_audiometry(current_user, patient_id):
 @token_required
 def get_audiometry(current_user, patient_id):
     return get_test_result(Audiometry, patient_id)
+
+@bp.route('/screening/register', methods=['POST'])
+@token_required
+def register_for_screening(current_user):
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'No input data provided'}), 400
+
+    # --- 1. Validate Input Data ---
+    required_fields = [
+        'staff_id', 'first_name', 'last_name', 'department', 'gender',
+        'date_of_birth', 'contact_phone', 'email_address', 'race',
+        'nationality', 'screening_year', 'company_section', 'patient_id_for_year'
+    ]
+    if not all(field in data for field in required_fields):
+        missing = [field for field in required_fields if field not in data]
+        return jsonify({'message': f'Missing required fields: {", ".join(missing)}'}), 400
+
+    # --- 2. Find or Create Comprehensive Patient Record ---
+    patient = Patient.query.filter_by(staff_id=data['staff_id']).first()
+    dob = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+
+    if patient:
+        # Update existing patient's comprehensive data
+        patient.first_name = data['first_name']
+        patient.middle_name = data.get('middle_name')
+        patient.last_name = data['last_name']
+        patient.department = data['department']
+        patient.gender = data['gender']
+        patient.date_of_birth = dob
+        patient.contact_phone = data['contact_phone']
+        patient.email_address = data['email_address']
+        patient.race = data['race']
+        patient.nationality = data['nationality']
+    else:
+        # Create a new patient
+        patient = Patient(
+            staff_id=data['staff_id'],
+            # The patient_id in the comprehensive table is not the yearly one
+            patient_id=data['staff_id'], # Or generate another unique one
+            first_name=data['first_name'],
+            middle_name=data.get('middle_name'),
+            last_name=data['last_name'],
+            department=data['department'],
+            gender=data['gender'],
+            date_of_birth=dob,
+            contact_phone=data['contact_phone'],
+            email_address=data['email_address'],
+            race=data['race'],
+            nationality=data['nationality']
+        )
+        db.session.add(patient)
+
+    # We need to commit here to get the patient.id if it's a new patient
+    db.session.commit()
+
+    # --- 3. Check for Duplicate Screening Registration ---
+    existing_screening = ScreeningBioData.query.filter_by(
+        patient_comprehensive_id=patient.id,
+        screening_year=data['screening_year'],
+        company_section=data['company_section']
+    ).first()
+
+    if existing_screening:
+        return jsonify({'message': 'Patient already registered for this screening year and company section.'}), 409
+
+    # Check if the year-specific patient ID is already in use for this context
+    existing_patient_id_for_year = ScreeningBioData.query.filter_by(
+        patient_id_for_year=data['patient_id_for_year'],
+        screening_year=data['screening_year'],
+        company_section=data['company_section']
+    ).first()
+
+    if existing_patient_id_for_year:
+        return jsonify({'message': 'The patient ID for this year is already taken.'}), 409
+
+    # --- 4. Create New ScreeningBioData Record ---
+    new_screening_record = ScreeningBioData(
+        patient_comprehensive_id=patient.id,
+        patient_id_for_year=data['patient_id_for_year'],
+        screening_year=data['screening_year'],
+        company_section=data['company_section']
+    )
+    db.session.add(new_screening_record)
+    db.session.commit()
+
+    return jsonify({'message': 'Patient registered for screening successfully.'}), 201
+
+@bp.route('/screening/stats', methods=['GET'])
+@token_required
+def screening_stats(current_user):
+    # --- 1. Get and Validate Query Parameters ---
+    screening_year = request.args.get('screening_year', type=int)
+    company_section = request.args.get('company_section')
+
+    if not screening_year or not company_section:
+        return jsonify({'message': 'screening_year and company_section parameters are required'}), 400
+
+    # --- 2. Base Query for the given context ---
+    base_query = ScreeningBioData.query.filter_by(
+        screening_year=screening_year,
+        company_section=company_section
+    )
+
+    # --- 3. Calculate Statistics ---
+    total_registered = base_query.count()
+
+    today_start = datetime.utcnow().date()
+    registered_today = base_query.filter(func.date(ScreeningBioData.date_registered) == today_start).count()
+
+    # Join with Patient table for gender and age
+    query_with_join = base_query.join(Patient, ScreeningBioData.patient_comprehensive_id == Patient.id)
+
+    male_count = query_with_join.filter(Patient.gender == 'Male').count()
+    female_count = query_with_join.filter(Patient.gender == 'Female').count()
+
+    # Age calculation (database-agnostic)
+    # This method calculates the difference in years. It's simple, portable,
+    # and sufficient for this statistical purpose.
+    from sqlalchemy.sql import extract
+    age_calc = extract('year', func.current_date()) - extract('year', Patient.date_of_birth)
+
+    over_40_count = query_with_join.filter(age_calc >= 40).count()
+    under_40_count = query_with_join.filter(age_calc < 40).count()
+
+    # --- 4. Format and Return Response ---
+    stats = {
+        'total_registered': total_registered,
+        'registered_today': registered_today,
+        'male_count': male_count,
+        'female_count': female_count,
+        'over_40_count': over_40_count,
+        'under_40_count': under_40_count
+    }
+
+    return jsonify(stats)

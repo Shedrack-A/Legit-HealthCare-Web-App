@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
 const StatsContainer = styled.div`
   display: grid;
@@ -26,38 +27,80 @@ const StatValue = styled.p`
   margin-bottom: 0;
 `;
 
-// Placeholder data
-const stats = {
-  total: 125,
-  today: 8,
-  males: 75,
-  females: 50,
-  over40: 60,
-  under40: 65,
-};
+interface PatientStatsProps {
+  screeningYear: number;
+  companySection: string;
+}
 
-const PatientStats: React.FC = () => {
+interface StatsData {
+  total_registered: number;
+  registered_today: number;
+  male_count: number;
+  female_count: number;
+  over_40_count: number;
+  under_40_count: number;
+}
+
+const PatientStats: React.FC<PatientStatsProps> = ({ screeningYear, companySection }) => {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!screeningYear || !companySection) return;
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/screening/stats', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            screening_year: screeningYear,
+            company_section: companySection,
+          },
+        });
+        setStats(response.data);
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [screeningYear, companySection]);
+
+  if (loading) {
+    return <p>Loading stats...</p>;
+  }
+
+  if (!stats) {
+    return <p>Could not load stats.</p>;
+  }
+
   return (
     <StatsContainer>
       <StatCard>
         <StatTitle>Total Patients</StatTitle>
-        <StatValue>{stats.total}</StatValue>
+        <StatValue>{stats.total_registered}</StatValue>
       </StatCard>
       <StatCard>
         <StatTitle>Registered Today</StatTitle>
-        <StatValue>{stats.today}</StatValue>
+        <StatValue>{stats.registered_today}</StatValue>
       </StatCard>
       <StatCard>
         <StatTitle>Males / Females</StatTitle>
-        <StatValue>{stats.males} / {stats.females}</StatValue>
+        <StatValue>
+          {stats.male_count} / {stats.female_count}
+        </StatValue>
       </StatCard>
       <StatCard>
         <StatTitle>Age {'>='} 40</StatTitle>
-        <StatValue>{stats.over40}</StatValue>
+        <StatValue>{stats.over_40_count}</StatValue>
       </StatCard>
       <StatCard>
         <StatTitle>Age {'<'} 40</StatTitle>
-        <StatValue>{stats.under40}</StatValue>
+        <StatValue>{stats.under_40_count}</StatValue>
       </StatCard>
     </StatsContainer>
   );
