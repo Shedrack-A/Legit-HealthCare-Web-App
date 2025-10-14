@@ -267,6 +267,62 @@ def save_director_review(current_user, patient_id):
 
     return jsonify({'message': 'Director review saved successfully.'}), 200
 
+@bp.route('/patients', methods=['GET'])
+@token_required
+def get_all_patients(current_user):
+    """
+    Returns a list of all patients in the comprehensive database.
+    """
+    patients = Patient.query.order_by(Patient.first_name, Patient.last_name).all()
+
+    results = [{
+        'id': p.id,
+        'staff_id': p.staff_id,
+        'first_name': p.first_name,
+        'last_name': p.last_name,
+    } for p in patients]
+
+    return jsonify(results)
+
+@bp.route('/patient/<int:patient_id>', methods=['DELETE'])
+@token_required
+def delete_patient(current_user, patient_id):
+    """
+    Deletes a patient and all their associated data.
+    """
+    patient = Patient.query.get_or_404(patient_id)
+    db.session.delete(patient)
+    db.session.commit()
+    return jsonify({'message': 'Patient deleted successfully.'}), 200
+
+@bp.route('/patient/<int:patient_id>', methods=['PUT'])
+@token_required
+def update_patient(current_user, patient_id):
+    """
+    Updates a patient's comprehensive bio-data.
+    """
+    patient = Patient.query.get_or_404(patient_id)
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'No input data provided'}), 400
+
+    # List of fields that can be updated
+    updatable_fields = [
+        'staff_id', 'first_name', 'middle_name', 'last_name', 'department',
+        'gender', 'date_of_birth', 'contact_phone', 'email_address',
+        'race', 'nationality'
+    ]
+
+    for field in updatable_fields:
+        if field in data:
+            if field == 'date_of_birth':
+                setattr(patient, field, datetime.strptime(data[field], '%Y-%m-%d').date())
+            else:
+                setattr(patient, field, data[field])
+
+    db.session.commit()
+    return jsonify({'message': 'Patient updated successfully.'}), 200
+
 @bp.route('/consultations', methods=['POST'])
 @token_required
 def create_or_update_consultation(current_user):
