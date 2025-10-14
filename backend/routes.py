@@ -163,6 +163,110 @@ def search_patient(current_user):
     }
     return jsonify(patient_data)
 
+@bp.route('/patient-summary/<int:patient_id>', methods=['GET'])
+@token_required
+def get_patient_summary(current_user, patient_id):
+    """
+    Aggregates all data for a single patient from multiple tables.
+    """
+    patient = Patient.query.get_or_404(patient_id)
+
+    # Start with the patient's own data
+    summary = {
+        'patient_id': patient.id,
+        'staff_id': patient.staff_id,
+        'first_name': patient.first_name,
+        'middle_name': patient.middle_name,
+        'last_name': patient.last_name,
+        'department': patient.department,
+        'gender': patient.gender,
+        'date_of_birth': patient.date_of_birth.isoformat(),
+        'age': (date.today().year - patient.date_of_birth.year),
+        'contact_phone': patient.contact_phone,
+        'email_address': patient.email_address,
+        'race': patient.race,
+        'nationality': patient.nationality,
+    }
+
+    # Helper function to merge data from related objects
+    def merge_data(obj):
+        if obj:
+            # Exclude SQLAlchemy internal state and keys we already have
+            exclude_keys = ['_sa_instance_state', 'id', 'patient_id', 'patient']
+            for key, value in obj.__dict__.items():
+                if key not in exclude_keys:
+                    summary[key] = value
+
+    # Use the relationships defined in the Patient model
+    merge_data(patient.consultation)
+    merge_data(patient.full_blood_count)
+    merge_data(patient.kidney_function_test)
+    merge_data(patient.lipid_profile)
+    merge_data(patient.liver_function_test)
+    merge_data(patient.ecg)
+    merge_data(patient.spirometry)
+    merge_data(patient.audiometry)
+
+    return jsonify(summary)
+
+@bp.route('/save-director-review/<int:patient_id>', methods=['POST'])
+@token_required
+def save_director_review(current_user, patient_id):
+    """
+    Receives the flattened data from the Director's Form and updates all
+    the corresponding database models.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'No input data provided'}), 400
+
+    patient = Patient.query.get_or_404(patient_id)
+
+    # Helper function to update an object with data from the form
+    def update_model(obj, model_fields):
+        if not obj:
+            return # Should not happen if data is loaded correctly, but a safe check
+        for field in model_fields:
+            if field in data and hasattr(obj, field):
+                setattr(obj, field, data[field])
+
+    # --- Update Consultation ---
+    consultation_fields = [
+        'diabetes_mellitus', 'hypertension', 'bp', 'pulse', 'spo2', 'hs', 'breast_exam',
+        'breast_exam_remark', 'abdomen', 'prostrate_specific_antigen', 'psa_remark',
+        'fbs', 'rbs', 'fbs_rbs_remark', 'urine_analysis', 'ua_remark',
+        'assessment_hx_pe', 'other_assessments', 'overall_lab_remark', 'other_remarks',
+        'overall_assessment', 'comment_one', 'comment_two', 'comment_three', 'comment_four'
+    ]
+    # Ensure consultation object exists
+    if not patient.consultation:
+        patient.consultation = Consultation(patient_id=patient.id)
+        db.session.add(patient.consultation)
+    update_model(patient.consultation, consultation_fields)
+
+    # --- Update ECG ---
+    if not patient.ecg:
+        patient.ecg = ECG(patient_id=patient.id)
+        db.session.add(patient.ecg)
+    update_model(patient.ecg, ['ecg_result', 'remark'])
+
+    # --- Update Spirometry ---
+    if not patient.spirometry:
+        patient.spirometry = Spirometry(patient_id=patient.id)
+        db.session.add(patient.spirometry)
+    update_model(patient.spirometry, ['spirometry_result', 'spirometry_remark'])
+
+    # --- Update Audiometry ---
+    if not patient.audiometry:
+        patient.audiometry = Audiometry(patient_id=patient.id)
+        db.session.add(patient.audiometry)
+    update_model(patient.audiometry, ['audiometry_result', 'audiometry_remark'])
+
+    # Commit all changes to the database
+    db.session.commit()
+
+    return jsonify({'message': 'Director review saved successfully.'}), 200
+
 @bp.route('/consultations', methods=['POST'])
 @token_required
 def create_or_update_consultation(current_user):

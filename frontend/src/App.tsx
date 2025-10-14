@@ -14,6 +14,8 @@ import ProtectedLayout from './components/ProtectedLayout';
 import TestResultsLandingPage from './pages/TestResultsLandingPage';
 import TestResultSearchPage from './pages/test-results/TestResultSearchPage';
 import TestResultFormPage from './pages/test-results/TestResultFormPage';
+import DirectorReviewSearchPage from './pages/DirectorReviewSearchPage';
+import DirectorReviewFormPage from './pages/DirectorReviewFormPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -42,6 +44,8 @@ function App() {
               <Route path="/test-results" element={<TestResultsLandingPage />} />
               <Route path="/test-results/:testType/search" element={<TestResultSearchPage />} />
               <Route path="/test-results/:testType/form/:patientId" element={<TestResultFormPage />} />
+              <Route path="/director-review/search" element={<DirectorReviewSearchPage />} />
+              <Route path="/director-review/form/:patientId" element={<DirectorReviewFormPage />} />
             </Route>
           </Route>
         </Routes>

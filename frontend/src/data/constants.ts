@@ -153,3 +153,44 @@ export const TEST_TYPE_CONFIG: any = {
     fields: AUDIOMETRY_FIELDS,
   },
 };
+
+export const DIRECTOR_REVIEW_FIELDS: { name: string; label: string; type: 'select' | 'text' | 'textarea'; options?: string[] }[] = [
+  // Fields from Consultation
+  { name: 'diabetes_mellitus', label: 'Diabetes Mellitus - DM', type: 'select', options: ['Yes - On Regular Medication', 'Yes - Not on Regular Medication', 'Yes - Not on Medication', 'No'] },
+  { name: 'hypertension', label: 'Hypertension - HTM', type: 'select', options: ['Yes - On Regular Medication', 'Yes - Not on Regular Medication', 'Yes - Not on Medication', 'No'] },
+  { name: 'bp', label: 'B.P', type: 'text' },
+  { name: 'pulse', label: 'PULSE - b/m', type: 'text' },
+  { name: 'spo2', label: 'SPO2%', type: 'text' },
+  { name: 'hs', label: 'HS: 1&2', type: 'select', options: ['Present', 'S3 Present', 'S4 Present'] },
+  { name: 'breast_exam', label: 'Breast Exam', type: 'select', options: ['Not Applicable', 'Normal', 'Abnormal'] },
+  { name: 'breast_exam_remark', label: 'Breast Exam Remark', type: 'textarea' },
+  { name: 'abdomen', label: 'Abdomen', type: 'select', options: ['Normal', 'Abnormal'] },
+  { name: 'prostrate_specific_antigen', label: 'Prostrate-Specific Antigen - PSA', type: 'select', options: ['Negative', 'Positive', 'Not Applicable'] },
+  { name: 'psa_remark', label: 'PSA Remark', type: 'textarea' },
+  { name: 'fbs', label: 'FBS', type: 'text' },
+  { name: 'rbs', label: 'RBS', type: 'text' },
+  { name: 'fbs_rbs_remark', label: 'FBS/RBS Remark', type: 'select', options: ['Normal', 'Abnormal', 'Maybe Abnormal'] },
+  { name: 'urine_analysis', label: 'Urine Analysis', type: 'select', options: ['No Abnormality', 'Proteinuria', 'Proteinuria+', 'Proteinuria >+', 'Glucosuria', 'Glucosuria+', 'Glucosuria >+', 'Proteinuria/Glucosuria'] },
+  { name: 'ua_remark', label: 'U/A Remark', type: 'select', options: ['Normal', 'Abnormal', 'Maybe Abnormal'] },
+
+  // Fields from other tests
+  { name: 'ecg_result', label: 'ECG Result', type: 'textarea' },
+  { name: 'remark', label: 'ECG Remark', type: 'textarea' },
+  { name: 'spirometry_result', label: 'Spirometry Result', type: 'textarea' },
+  { name: 'spirometry_remark', label: 'Spirometry Remark', type: 'textarea' },
+  { name: 'audiometry_result', label: 'Audiometry Result', type: 'textarea' },
+  { name: 'audiometry_remark', label: 'Audiometry Remark', type: 'textarea' },
+
+  // Fields from Consultation Assessment
+  { name: 'assessment_hx_pe', label: 'Assessment - HX/PE', type: 'select', options: ['Satisfactory', 'Elevated BP', 'Poorly Controled HTN', 'Known DM', 'Bladder Outlet Obstruction'] },
+  { name: 'other_assessments', label: 'Other Assessments', type: 'textarea' },
+  { name: 'overall_lab_remark', label: 'Overall Lab Remark', type: 'textarea' },
+  { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
+  { name: 'overall_assessment', label: 'Overall Assessment(s)', type: 'textarea' },
+
+  // New Director Comments
+  { name: 'comment_one', label: 'Comment One', type: 'textarea' },
+  { name: 'comment_two', label: 'Comment Two', type: 'textarea' },
+  { name: 'comment_three', label: 'Comment Three', type: 'textarea' },
+  { name: 'comment_four', label: 'Comment Four', type: 'textarea' },
+];

@@ -100,6 +100,12 @@ class Consultation(db.Model):
     other_remarks = db.Column(db.Text)
     overall_assessment = db.Column(db.Text)
 
+    # Director's comments
+    comment_one = db.Column(db.Text)
+    comment_two = db.Column(db.Text)
+    comment_three = db.Column(db.Text)
+    comment_four = db.Column(db.Text)
+
     def __repr__(self):
         return f'<Consultation for Patient {self.patient_id}>'
 

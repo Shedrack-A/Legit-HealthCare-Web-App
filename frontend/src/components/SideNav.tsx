@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
+import { FaTachometerAlt, FaUserPlus, FaNotesMedical, FaVial, FaUserTie } from 'react-icons/fa';
 
 const NavContainer = styled.nav`
   background-color: ${({ theme }) => theme.cardBg};
@@ -41,28 +42,42 @@ const StyledNavLink = styled(NavLink)`
   }
 `;
 
+const IconWrapper = styled.span`
+  margin-right: 1rem;
+`;
+
 const SideNav: React.FC = () => {
   return (
     <NavContainer>
       <NavList>
         <NavItem>
           <StyledNavLink to="/dashboard">
-            Dashboard
+            <IconWrapper><FaTachometerAlt /></IconWrapper>
+            <span>Dashboard</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/register-patient">
-            Register Patient
+            <IconWrapper><FaUserPlus /></IconWrapper>
+            <span>Register Patient</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/consultation">
-            Consultation
+            <IconWrapper><FaNotesMedical /></IconWrapper>
+            <span>Consultation</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/test-results">
-            Test Results
+            <IconWrapper><FaVial /></IconWrapper>
+            <span>Test Results</span>
+          </StyledNavLink>
+        </NavItem>
+        <NavItem>
+          <StyledNavLink to="/director-review/search">
+            <IconWrapper><FaUserTie /></IconWrapper>
+            <span>Director's Review</span>
           </StyledNavLink>
         </NavItem>
       </NavList>
