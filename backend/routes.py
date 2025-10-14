@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify, request, current_app
-from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry
+from flask import Blueprint, jsonify, request, current_app, session
+from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry, Role, Permission, TemporaryAccessCode
 from . import db
 import jwt
 from datetime import datetime, timedelta, timezone, date
@@ -108,9 +108,20 @@ def token_required(func_or_permission=None):
                     return jsonify({'message': 'Token is invalid!'}), 401
 
                 if permission:
+                # Check permanent role-based permissions first
                     user_permissions = {p.name for role in current_user.roles for p in role.permissions}
-                    if permission not in user_permissions:
-                        return jsonify({'message': 'You do not have permission to perform this action.'}), 403
+                if permission in user_permissions:
+                    return f(current_user, *args, **kwargs)
+
+                # If not found, check for a valid temporary permission in the session
+                temp_permissions = session.get('temp_permissions', {})
+                if permission in temp_permissions:
+                    expiration_str = temp_permissions[permission]
+                    if datetime.fromisoformat(expiration_str) > datetime.utcnow():
+                        return f(current_user, *args, **kwargs) # Temporary permission is valid
+
+                # If neither permanent nor valid temporary permission is found
+                return jsonify({'message': 'You do not have permission to perform this action.'}), 403
 
                 return f(current_user, *args, **kwargs)
             return decorated_function
@@ -828,3 +839,82 @@ def delete_role(current_user, role_id):
     db.session.delete(role)
     db.session.commit()
     return jsonify({'message': 'Role deleted successfully.'})
+
+# Temporary Access Code Routes
+import uuid
+
+@bp.route('/temp-codes', methods=['GET'])
+@token_required('manage_roles') # Assuming only roles managers can manage codes
+def get_temp_codes(current_user):
+    codes = TemporaryAccessCode.query.all()
+    return jsonify([{
+        'id': c.id,
+        'code': c.code,
+        'permission': c.permission.name,
+        'expiration': c.expiration.isoformat(),
+        'use_type': c.use_type,
+        'times_used': c.times_used,
+        'is_active': c.is_active,
+    } for c in codes])
+
+@bp.route('/temp-codes', methods=['POST'])
+@token_required('manage_roles')
+def generate_temp_code(current_user):
+    data = request.get_json()
+    if not data or not data.get('permission_id') or not data.get('duration_minutes'):
+        return jsonify({'message': 'Permission ID and duration are required'}), 400
+
+    permission = Permission.query.get_or_404(data['permission_id'])
+    duration = timedelta(minutes=int(data['duration_minutes']))
+    expiration = datetime.utcnow() + duration
+    code_str = f"LHCSL-{uuid.uuid4().hex[:8].upper()}"
+    use_type = data.get('use_type', 'single-use')
+
+    new_code = TemporaryAccessCode(
+        code=code_str,
+        permission_id=permission.id,
+        expiration=expiration,
+        use_type=use_type
+    )
+    db.session.add(new_code)
+    db.session.commit()
+
+    return jsonify({'message': 'Temporary access code generated successfully.', 'code': code_str}), 201
+
+@bp.route('/temp-codes/activate', methods=['POST'])
+@token_required()
+def activate_temp_code(current_user):
+    data = request.get_json()
+    code_str = data.get('code')
+    if not code_str:
+        return jsonify({'message': 'Temporary access code is required'}), 400
+
+    code = TemporaryAccessCode.query.filter_by(code=code_str, is_active=True).first()
+
+    if not code or code.expiration < datetime.utcnow():
+        return jsonify({'message': 'Invalid or expired code.'}), 404
+
+    if code.use_type == 'single-use' and code.times_used > 0:
+        return jsonify({'message': 'This code has already been used.'}), 403
+
+    # Grant permission in session (this is a simple way, a more robust system might use a separate table)
+    # The decorator will need to be updated to check this session variable.
+    session_permissions = session.get('temp_permissions', {})
+    session_permissions[code.permission.name] = code.expiration.isoformat()
+    session['temp_permissions'] = session_permissions
+
+    code.times_used += 1
+    if code.use_type == 'single-use':
+        code.is_active = False
+
+    db.session.commit()
+
+    return jsonify({'message': f"Permission '{code.permission.name}' granted temporarily."})
+
+@bp.route('/temp-codes/<int:code_id>/revoke', methods=['POST'])
+@token_required('manage_roles')
+def revoke_temp_code(current_user, code_id):
+    code = TemporaryAccessCode.query.get_or_404(code_id)
+    code.is_active = False
+    db.session.commit()
+    return jsonify({'message': 'Code revoked successfully.'})

@@ -67,6 +67,19 @@ class Permission(db.Model):
     def __repr__(self):
         return f'<Permission {self.name}>'
 
+class TemporaryAccessCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    permission_id = db.Column(db.Integer, db.ForeignKey('permission.id'), nullable=False)
+    permission = db.relationship('Permission')
+    expiration = db.Column(db.DateTime, nullable=False)
+    use_type = db.Column(db.String(20), nullable=False, default='single-use') # 'single-use' or 'multi-use'
+    times_used = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return f'<TemporaryAccessCode {self.code}>'
+
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     staff_id = db.Column(db.String(50), unique=True, nullable=False)

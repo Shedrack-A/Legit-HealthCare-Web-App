@@ -24,6 +24,8 @@ import ViewRecordsPage from './pages/ViewRecordsPage';
 import ControlPanelPage from './pages/ControlPanelPage';
 import UserManagementPage from './pages/UserManagementPage';
 import RoleManagementPage from './pages/RoleManagementPage';
+import TempAccessCodePage from './pages/TempAccessCodePage';
+import AccessDeniedPage from './pages/AccessDeniedPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -63,6 +65,8 @@ function App() {
               <Route path="/control-panel" element={<ControlPanelPage />} />
               <Route path="/control-panel/user-management" element={<UserManagementPage />} />
               <Route path="/control-panel/role-management" element={<RoleManagementPage />} />
+              <Route path="/control-panel/temp-access-codes" element={<TempAccessCodePage />} />
+              <Route path="/access-denied" element={<AccessDeniedPage />} />
             </Route>
           </Route>
         </Routes>
