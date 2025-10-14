@@ -12,9 +12,11 @@ const SpirometryPage: React.FC = () => {
     <TestResultLayout title="Spirometry">
       {(patient) => (
         <GenericTestResultForm
-          patient={patient}
-          fields={spirometryFields}
-          apiUrl="test-results/spirometry"
+          patientId={patient.id}
+          formFields={spirometryFields}
+          apiEndpoint={`/api/test-results/spirometry/${patient.id}`}
+          fetchEndpoint={`/api/test-results/spirometry/${patient.id}`}
+          title="Spirometry"
         />
       )}
     </TestResultLayout>

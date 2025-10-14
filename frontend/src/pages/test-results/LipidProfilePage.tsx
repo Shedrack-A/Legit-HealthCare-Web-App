@@ -12,36 +12,44 @@ const lpFields: { name: string, label: string, type: 'number' | 'textarea' }[] =
     { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
 ];
 
+const lpCalculations = [
+    {
+        target: 'hdl',
+        dependencies: ['tcho'],
+        calculate: (data: any) => {
+            const tcho = parseFloat(data.tcho);
+            if (!isNaN(tcho)) {
+                return (tcho * 0.35).toFixed(2);
+            }
+            return '';
+        }
+    },
+    {
+        target: 'ldl',
+        dependencies: ['tcho', 'tg', 'hdl'],
+        calculate: (data: any) => {
+            const tcho = parseFloat(data.tcho);
+            const tg = parseFloat(data.tg);
+            const hdl = parseFloat(data.hdl);
+            if (!isNaN(tcho) && !isNaN(tg) && !isNaN(hdl)) {
+                return (tcho + tg / 5 + hdl).toFixed(2);
+            }
+            return '';
+        }
+    }
+];
+
 const LipidProfilePage: React.FC = () => {
-    const [hdl, setHdl] = useState<number | string>('');
-    const [ldl, setLdl] = useState<number | string>('');
-
-    const handleFormChange = (data: any) => {
-        const { tcho, tg } = data;
-        let calculatedHdl: number | null = null;
-
-        if (tcho) {
-            calculatedHdl = parseFloat(tcho) * 0.35;
-            setHdl(calculatedHdl.toFixed(2));
-        }
-
-        const hdlForLdl = calculatedHdl !== null ? calculatedHdl : parseFloat(hdl as string);
-
-        if (tcho && tg && hdlForLdl) {
-            const calculatedLdl = parseFloat(tcho) + parseFloat(tg) / 5 + hdlForLdl;
-            setLdl(calculatedLdl.toFixed(2));
-        }
-    };
-
   return (
     <TestResultLayout title="Lipid Profile">
       {(patient) => (
         <GenericTestResultForm
-          patient={patient}
-          fields={lpFields}
-          apiUrl="test-results/lipid-profile"
-          onFormChange={handleFormChange}
-          initialValues={{ hdl: hdl, ldl: ldl }}
+          patientId={patient.id}
+          formFields={lpFields}
+          apiEndpoint={`/api/test-results/lipid-profile/${patient.id}`}
+          fetchEndpoint={`/api/test-results/lipid-profile/${patient.id}`}
+          title="Lipid Profile"
+          calculations={lpCalculations}
         />
       )}
     </TestResultLayout>

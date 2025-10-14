@@ -21,7 +21,7 @@ const FormInput = styled.input`
   padding: 0.75rem;
   border: 1px solid ${({ theme }) => theme.cardBorder};
   border-radius: 4px;
-  background-color: ${({ readOnly }) => readOnly ? theme.cardBorder : 'inherit'};
+  background-color: ${({ readOnly, theme }) => readOnly ? theme.cardBorder : 'inherit'};
 `;
 
 const FormSelect = styled.select`
