@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
-const LandingContainer = styled.div`
+const PageContainer = styled.div`
   padding: 2rem;
 `;
 
@@ -11,49 +11,55 @@ const PageTitle = styled.h1`
   margin-bottom: 2rem;
 `;
 
-const TestMenu = styled.div`
+const TestList = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 `;
 
-const TestLinkCard = styled(Link)`
+const TestCard = styled(Link)`
   background-color: ${({ theme }) => theme.cardBg};
-  padding: 2rem;
+  border: 1px solid ${({ theme }) => theme.cardBorder};
   border-radius: 8px;
-  text-align: center;
+  padding: 2rem;
   text-decoration: none;
-  color: ${({ theme }) => theme.text};
+  color: inherit;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover {
     transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   }
 `;
 
-const testTypes = [
-  { name: 'Full Blood Count', path: '/test-results/full-blood-count' },
-  { name: 'Kidney Function Test', path: '/test-results/kidney-function-test' },
-  { name: 'Lipid Profile', path: '/test-results/lipid-profile' },
-  { name: 'Liver Function Test', path: '/test-results/liver-function-test' },
-  { name: 'ECG', path: '/test-results/ecg' },
-  { name: 'Spirometry', path: '/test-results/spirometry' },
-  { name: 'Audiometry', path: '/test-results/audiometry' },
+const TestTitle = styled.h2`
+  margin-top: 0;
+  color: ${({ theme }) => theme.main};
+`;
+
+const TEST_TYPES = [
+  { key: 'full-blood-count', name: 'Full Blood Count' },
+  { key: 'kidney-function-test', name: 'Kidney Function Test' },
+  { key: 'lipid-profile', name: 'Lipid Profile' },
+  { key: 'liver-function-test', name: 'Liver Function Test' },
+  { key: 'ecg', name: 'ECG' },
+  { key: 'spirometry', name: 'Spirometry' },
+  { key: 'audiometry', name: 'Audiometry' },
 ];
 
 const TestResultsLandingPage: React.FC = () => {
   return (
-    <LandingContainer>
-      <PageTitle>Select Test Result to Enter</PageTitle>
-      <TestMenu>
-        {testTypes.map(test => (
-          <TestLinkCard key={test.path} to={test.path}>
-            <h3>{test.name}</h3>
-          </TestLinkCard>
+    <PageContainer>
+      <PageTitle>Select a Test to Record Results</PageTitle>
+      <TestList>
+        {TEST_TYPES.map((test) => (
+          <TestCard key={test.key} to={`/test-results/${test.key}/search`}>
+            <TestTitle>{test.name}</TestTitle>
+          </TestCard>
         ))}
-      </TestMenu>
-    </LandingContainer>
+      </TestList>
+    </PageContainer>
   );
 };
 

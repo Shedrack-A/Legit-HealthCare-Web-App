@@ -12,13 +12,8 @@ import ConsultationPage from './pages/ConsultationPage';
 import ConsultationFormPage from './pages/ConsultationFormPage';
 import ProtectedLayout from './components/ProtectedLayout';
 import TestResultsLandingPage from './pages/TestResultsLandingPage';
-import FullBloodCountPage from './pages/test-results/FullBloodCountPage';
-import KidneyFunctionTestPage from './pages/test-results/KidneyFunctionTestPage';
-import LipidProfilePage from './pages/test-results/LipidProfilePage';
-import LiverFunctionTestPage from './pages/test-results/LiverFunctionTestPage';
-import ECGPage from './pages/test-results/ECGPage';
-import SpirometryPage from './pages/test-results/SpirometryPage';
-import AudiometryPage from './pages/test-results/AudiometryPage';
+import TestResultSearchPage from './pages/test-results/TestResultSearchPage';
+import TestResultFormPage from './pages/test-results/TestResultFormPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -45,13 +40,8 @@ function App() {
               <Route path="/consultation" element={<ConsultationPage />} />
               <Route path="/consultation/form/:patientId" element={<ConsultationFormPage />} />
               <Route path="/test-results" element={<TestResultsLandingPage />} />
-              <Route path="/test-results/full-blood-count" element={<FullBloodCountPage />} />
-              <Route path="/test-results/kidney-function-test" element={<KidneyFunctionTestPage />} />
-              <Route path="/test-results/lipid-profile" element={<LipidProfilePage />} />
-              <Route path="/test-results/liver-function-test" element={<LiverFunctionTestPage />} />
-              <Route path="/test-results/ecg" element={<ECGPage />} />
-              <Route path="/test-results/spirometry" element={<SpirometryPage />} />
-              <Route path="/test-results/audiometry" element={<AudiometryPage />} />
+              <Route path="/test-results/:testType/search" element={<TestResultSearchPage />} />
+              <Route path="/test-results/:testType/form/:patientId" element={<TestResultFormPage />} />
             </Route>
           </Route>
         </Routes>

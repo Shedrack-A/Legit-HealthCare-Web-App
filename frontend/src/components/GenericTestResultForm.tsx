@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 
@@ -21,6 +21,7 @@ const FormInput = styled.input`
   padding: 0.75rem;
   border: 1px solid ${({ theme }) => theme.cardBorder};
   border-radius: 4px;
+  background-color: ${({ readOnly }) => readOnly ? theme.cardBorder : 'inherit'};
 `;
 
 const FormSelect = styled.select`
@@ -52,6 +53,13 @@ interface FormField {
   label: string;
   type: 'text' | 'number' | 'textarea' | 'select';
   options?: string[];
+  readOnly?: boolean;
+}
+
+interface CalculationRule {
+    target: string;
+    dependencies: string[];
+    calculate: (data: any) => number | string;
 }
 
 interface GenericFormProps {
@@ -60,9 +68,10 @@ interface GenericFormProps {
   apiEndpoint: string;
   fetchEndpoint: string;
   title: string;
+  calculations?: CalculationRule[];
 }
 
-const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFields, apiEndpoint, fetchEndpoint, title }) => {
+const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFields, apiEndpoint, fetchEndpoint, title, calculations }) => {
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
@@ -86,17 +95,49 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
     fetchData();
   }, [patientId, fetchEndpoint]);
 
+  const runCalculations = useCallback((data: any, changedField: string) => {
+    if (!calculations) return data;
+
+    let newData = { ...data };
+    let needsRecalculating = true;
+
+    // Loop to handle chained calculations (e.g., LDL depends on HDL, which depends on TCHO)
+    while(needsRecalculating) {
+        needsRecalculating = false;
+        calculations.forEach(rule => {
+            // Check if the changed field is a dependency of the current rule
+            if (rule.dependencies.includes(changedField)) {
+                const result = rule.calculate(newData);
+                if (newData[rule.target] !== result) {
+                    newData = { ...newData, [rule.target]: result };
+                    // If this calculation updated a field, we need to check if that field is a dependency for another rule
+                    changedField = rule.target;
+                    needsRecalculating = true;
+                }
+            }
+        });
+    }
+    return newData;
+  }, [calculations]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => {
+        const updatedData = { ...prev, [name]: value };
+        return runCalculations(updatedData, name);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      // For consultation, the patient_id must be in the body
-      const submissionData = { ...formData, patient_id: patientId };
+      // For consultation, the patient_id might need to be in the body
+      // For test results, it's in the URL. We'll handle both.
+      const submissionData = { ...formData };
+      if (apiEndpoint.includes('consultations')) {
+        submissionData.patient_id = patientId;
+      }
 
       await axios.post(apiEndpoint, submissionData, {
         headers: { Authorization: `Bearer ${token}` }
@@ -110,7 +151,7 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
   };
 
   const renderField = (field: FormField) => {
-    const { name, label, type, options } = field;
+    const { name, label, type, options, readOnly } = field;
     const value = formData[name] || '';
 
     switch (type) {
@@ -135,7 +176,7 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
         return (
           <FormGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
-            <FormInput id={name} type={type} name={name} value={value} onChange={handleChange} />
+            <FormInput id={name} type={type} name={name} value={value} onChange={handleChange} readOnly={readOnly} />
           </FormGroup>
         );
     }

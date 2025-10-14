@@ -53,3 +53,103 @@ export const CONSULTATION_FIELDS: { name: string; label: string; type: 'select' 
   { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
   { name: 'overall_assessment', label: 'Overall Assessment(s)', type: 'textarea' },
 ];
+
+// Form Fields for Test Results
+
+export const FULL_BLOOD_COUNT_FIELDS: { name: string; label: string; type: 'text' | 'number' | 'textarea' }[] = [
+  { name: 'hct', label: 'HCT', type: 'number' },
+  { name: 'wbc', label: 'WBC', type: 'number' },
+  { name: 'plt', label: 'PLT', type: 'number' },
+  { name: 'lymp_percent', label: 'LYMP(%)', type: 'number' },
+  { name: 'lymp', label: 'LYMP', type: 'number' },
+  { name: 'gra_percent', label: 'GRA(%)', type: 'number' },
+  { name: 'gra', label: 'GRA', type: 'number' },
+  { name: 'mid_percent', label: 'MID(%)', type: 'number' },
+  { name: 'mid', label: 'MID', type: 'number' },
+  { name: 'rbc', label: 'RBC', type: 'number' },
+  { name: 'mcv', label: 'MCV(fl)', type: 'number' },
+  { name: 'mch', label: 'MCH(pg)', type: 'number' },
+  { name: 'mchc', label: 'MCHC(g/dl)', type: 'number' },
+  { name: 'rdw', label: 'RDW(%)', type: 'number' },
+  { name: 'pdw', label: 'PDW(%)', type: 'number' },
+  { name: 'hgb', label: 'HGB', type: 'number' },
+  { name: 'fbc_remark', label: 'FBC Remark', type: 'textarea' },
+  { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
+];
+
+export const KIDNEY_FUNCTION_TEST_FIELDS: { name: string; label: string; type: 'text' | 'number' | 'textarea', readOnly?: boolean }[] = [
+  { name: 'k', label: 'K', type: 'number' },
+  { name: 'na', label: 'NA', type: 'number' },
+  { name: 'cl', label: 'CL', type: 'number' },
+  { name: 'ca', label: 'CA', type: 'number' },
+  { name: 'hc03', label: 'HC03', type: 'number', readOnly: true },
+  { name: 'urea', label: 'UREA', type: 'number' },
+  { name: 'cre', label: 'CRE', type: 'number' },
+  { name: 'kft_remark', label: 'KFT Remark', type: 'textarea' },
+  { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
+];
+
+export const LIPID_PROFILE_FIELDS: { name: string; label: string; type: 'text' | 'number' | 'textarea', readOnly?: boolean }[] = [
+  { name: 'tcho', label: 'TCHO', type: 'number' },
+  { name: 'tg', label: 'TG', type: 'number' },
+  { name: 'hdl', label: 'HDL', type: 'number', readOnly: true },
+  { name: 'ldl', label: 'LDL', type: 'number', readOnly: true },
+  { name: 'lp_remark', label: 'LP Remark', type: 'textarea' },
+  { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
+];
+
+export const LIVER_FUNCTION_TEST_FIELDS: { name: string; label: string; type: 'text' | 'number' | 'textarea' }[] = [
+  { name: 'ast', label: 'AST', type: 'number' },
+  { name: 'alt', label: 'ALT', type: 'number' },
+  { name: 'alp', label: 'ALP', type: 'number' },
+  { name: 'tb', label: 'TB', type: 'number' },
+  { name: 'cb', label: 'CB', type: 'number' },
+  { name: 'lft_remark', label: 'LFT Remark', type: 'textarea' },
+  { name: 'other_remarks', label: 'Other Remarks', type: 'textarea' },
+];
+
+export const ECG_FIELDS: { name: string; label: string; type: 'text' | 'textarea' }[] = [
+  { name: 'ecg_result', label: 'ECG Result', type: 'textarea' },
+  { name: 'remark', label: 'Remark', type: 'textarea' },
+];
+
+export const SPIROMETRY_FIELDS: { name: string; label: string; type: 'text' | 'textarea' }[] = [
+  { name: 'spirometry_result', label: 'Spirometry Result', type: 'textarea' },
+  { name: 'spirometry_remark', label: 'Spirometry Remark', type: 'textarea' },
+];
+
+export const AUDIOMETRY_FIELDS: { name: string; label: string; type: 'text' | 'textarea' }[] = [
+  { name: 'audiometry_result', label: 'Audiometry Result', type: 'textarea' },
+  { name: 'audiometry_remark', label: 'Audiometry Remark', type: 'textarea' },
+];
+
+export const TEST_TYPE_CONFIG: any = {
+  'full-blood-count': {
+    name: 'Full Blood Count',
+    fields: FULL_BLOOD_COUNT_FIELDS,
+  },
+  'kidney-function-test': {
+    name: 'Kidney Function Test',
+    fields: KIDNEY_FUNCTION_TEST_FIELDS,
+  },
+  'lipid-profile': {
+    name: 'Lipid Profile',
+    fields: LIPID_PROFILE_FIELDS,
+  },
+  'liver-function-test': {
+    name: 'Liver Function Test',
+    fields: LIVER_FUNCTION_TEST_FIELDS,
+  },
+  'ecg': {
+    name: 'ECG',
+    fields: ECG_FIELDS,
+  },
+  'spirometry': {
+    name: 'Spirometry',
+    fields: SPIROMETRY_FIELDS,
+  },
+  'audiometry': {
+    name: 'Audiometry',
+    fields: AUDIOMETRY_FIELDS,
+  },
+};
