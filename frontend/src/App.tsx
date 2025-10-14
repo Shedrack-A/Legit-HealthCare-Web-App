@@ -16,6 +16,8 @@ import TestResultSearchPage from './pages/test-results/TestResultSearchPage';
 import TestResultFormPage from './pages/test-results/TestResultFormPage';
 import DirectorReviewSearchPage from './pages/DirectorReviewSearchPage';
 import DirectorReviewFormPage from './pages/DirectorReviewFormPage';
+import PatientReportSearchPage from './pages/PatientReportSearchPage';
+import PatientReportPage from './pages/PatientReportPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -46,6 +48,8 @@ function App() {
               <Route path="/test-results/:testType/form/:patientId" element={<TestResultFormPage />} />
               <Route path="/director-review/search" element={<DirectorReviewSearchPage />} />
               <Route path="/director-review/form/:patientId" element={<DirectorReviewFormPage />} />
+              <Route path="/patient-report/search" element={<PatientReportSearchPage />} />
+              <Route path="/patient-report/view/:patientId" element={<PatientReportPage />} />
             </Route>
           </Route>
         </Routes>
