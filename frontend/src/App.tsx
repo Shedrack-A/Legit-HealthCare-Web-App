@@ -20,6 +20,7 @@ import PatientReportSearchPage from './pages/PatientReportSearchPage';
 import PatientReportPage from './pages/PatientReportPage';
 import ViewPatientsPage from './pages/ViewPatientsPage';
 import EditPatientPage from './pages/EditPatientPage';
+import ViewRecordsPage from './pages/ViewRecordsPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -54,6 +55,7 @@ function App() {
               <Route path="/patient-report/view/:patientId" element={<PatientReportPage />} />
               <Route path="/view-patients" element={<ViewPatientsPage />} />
               <Route path="/edit-patient/:patientId" element={<EditPatientPage />} />
+              <Route path="/view-records" element={<ViewRecordsPage />} />
             </Route>
           </Route>
         </Routes>

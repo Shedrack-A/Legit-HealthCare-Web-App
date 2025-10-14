@@ -323,6 +323,50 @@ def update_patient(current_user, patient_id):
     db.session.commit()
     return jsonify({'message': 'Patient updated successfully.'}), 200
 
+@bp.route('/screening/records', methods=['GET'])
+@token_required
+def get_screening_records(current_user):
+    """
+    Returns a list of patients registered for a specific screening year and company.
+    """
+    screening_year = request.args.get('screening_year', type=int)
+    company_section = request.args.get('company_section')
+
+    if not screening_year or not company_section:
+        return jsonify({'message': 'screening_year and company_section parameters are required'}), 400
+
+    records = db.session.query(
+        ScreeningBioData.id.label('record_id'),
+        Patient.id.label('patient_id'),
+        Patient.staff_id,
+        Patient.first_name,
+        Patient.last_name
+    ).join(
+        Patient, ScreeningBioData.patient_comprehensive_id == Patient.id
+    ).filter(
+        ScreeningBioData.screening_year == screening_year,
+        ScreeningBioData.company_section == company_section
+    ).order_by(Patient.first_name, Patient.last_name).all()
+
+    return jsonify([{
+        'record_id': r.record_id,
+        'patient_id': r.patient_id,
+        'staff_id': r.staff_id,
+        'first_name': r.first_name,
+        'last_name': r.last_name
+    } for r in records])
+
+@bp.route('/screening/record/<int:record_id>', methods=['DELETE'])
+@token_required
+def delete_screening_record(current_user, record_id):
+    """
+    Deletes a specific screening record.
+    """
+    record = ScreeningBioData.query.get_or_404(record_id)
+    db.session.delete(record)
+    db.session.commit()
+    return jsonify({'message': 'Screening record deleted successfully.'}), 200
+
 @bp.route('/consultations', methods=['POST'])
 @token_required
 def create_or_update_consultation(current_user):
