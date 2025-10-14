@@ -62,25 +62,31 @@ def login():
 
     return jsonify({'token': token})
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split(" ")[1]
+def token_required(permission=None):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            token = None
+            if 'Authorization' in request.headers:
+                token = request.headers['Authorization'].split(" ")[1]
 
-        if not token:
-            return jsonify({'message': 'Token is missing!'}), 401
+            if not token:
+                return jsonify({'message': 'Token is missing!'}), 401
 
-        try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = User.query.get(data['user_id'])
-        except:
-            return jsonify({'message': 'Token is invalid!'}), 401
+            try:
+                data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+                current_user = User.query.get(data['user_id'])
+            except:
+                return jsonify({'message': 'Token is invalid!'}), 401
 
-        return f(current_user, *args, **kwargs)
+            if permission:
+                user_permissions = {p.name for role in current_user.roles for p in role.permissions}
+                if permission not in user_permissions:
+                    return jsonify({'message': 'You do not have permission to perform this action.'}), 403
 
-    return decorated
+            return f(current_user, *args, **kwargs)
+        return decorated_function
+    return decorator
 
 @bp.route('/profile')
 @token_required
@@ -705,3 +711,92 @@ def get_patient_by_staff_id(current_user, staff_id):
         'age': (date.today().year - patient.date_of_birth.year)
     }
     return jsonify(patient_data)
+
+# RBAC Routes
+@bp.route('/users', methods=['GET'])
+@token_required('manage_users')
+def get_users(current_user):
+    users = User.query.all()
+    return jsonify([{'id': u.id, 'username': u.username, 'email': u.email, 'roles': [r.name for r in u.roles]} for u in users])
+
+@bp.route('/roles', methods=['GET'])
+@token_required('manage_roles')
+def get_roles(current_user):
+    roles = Role.query.all()
+    return jsonify([{'id': r.id, 'name': r.name} for r in roles])
+
+@bp.route('/user/<int:user_id>/assign-role', methods=['POST'])
+@token_required('manage_users')
+def assign_role(current_user, user_id):
+    data = request.get_json()
+    if not data or 'role_id' not in data:
+        return jsonify({'message': 'Role ID is required'}), 400
+
+    user = User.query.get_or_404(user_id)
+    role = Role.query.get_or_404(data['role_id'])
+
+    user.roles.append(role)
+    db.session.commit()
+
+    return jsonify({'message': f'Role {role.name} assigned to user {user.username} successfully.'})
+
+@bp.route('/permissions', methods=['GET'])
+@token_required('manage_roles')
+def get_permissions(current_user):
+    permissions = Permission.query.all()
+    return jsonify([{'id': p.id, 'name': p.name} for p in permissions])
+
+@bp.route('/roles/<int:role_id>', methods=['GET'])
+@token_required('manage_roles')
+def get_role(current_user, role_id):
+    role = Role.query.get_or_404(role_id)
+    return jsonify({
+        'id': role.id,
+        'name': role.name,
+        'permissions': [p.id for p in role.permissions]
+    })
+
+@bp.route('/roles', methods=['POST'])
+@token_required('manage_roles')
+def create_role(current_user):
+    data = request.get_json()
+    if not data or not data.get('name'):
+        return jsonify({'message': 'Role name is required'}), 400
+
+    new_role = Role(name=data['name'])
+    db.session.add(new_role)
+    db.session.commit()
+
+    return jsonify({'id': new_role.id, 'name': new_role.name, 'permissions': []}), 201
+
+@bp.route('/roles/<int:role_id>', methods=['PUT'])
+@token_required('manage_roles')
+def update_role(current_user, role_id):
+    role = Role.query.get_or_404(role_id)
+    data = request.get_json()
+
+    if 'name' in data:
+        role.name = data['name']
+
+    if 'permission_ids' in data:
+        role.permissions = []
+        for p_id in data['permission_ids']:
+            permission = Permission.query.get(p_id)
+            if permission:
+                role.permissions.append(permission)
+
+    db.session.commit()
+    return jsonify({'message': 'Role updated successfully.'})
+
+@bp.route('/roles/<int:role_id>', methods=['DELETE'])
+@token_required('manage_roles')
+def delete_role(current_user, role_id):
+    role = Role.query.get_or_404(role_id)
+
+    # Basic protection for Admin role
+    if role.name == 'Admin':
+        return jsonify({'message': 'The Admin role cannot be deleted.'}), 403
+
+    db.session.delete(role)
+    db.session.commit()
+    return jsonify({'message': 'Role deleted successfully.'})

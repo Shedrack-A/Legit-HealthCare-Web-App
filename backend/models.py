@@ -33,8 +33,39 @@ class User(db.Model):
             return False
         return True
 
+    roles = db.relationship('Role', secondary='user_roles', back_populates='users')
+
     def __repr__(self):
         return f'<User {self.username}>'
+
+# Association table for Users and Roles
+user_roles = db.Table('user_roles',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id'), primary_key=True)
+)
+
+# Association table for Roles and Permissions
+role_permissions = db.Table('role_permissions',
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id'), primary_key=True)
+)
+
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    users = db.relationship('User', secondary='user_roles', back_populates='roles')
+    permissions = db.relationship('Permission', secondary='role_permissions', back_populates='roles')
+
+    def __repr__(self):
+        return f'<Role {self.name}>'
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    roles = db.relationship('Role', secondary='role_permissions', back_populates='permissions')
+
+    def __repr__(self):
+        return f'<Permission {self.name}>'
 
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)

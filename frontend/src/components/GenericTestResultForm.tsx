@@ -136,7 +136,7 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
       // For test results, it's in the URL. We'll handle both.
       const submissionData = { ...formData };
       if (apiEndpoint.includes('consultations')) {
-        submissionData.patient_id = patientId;
+        submissionData.staff_id = patientId; // patientId prop now holds the staff_id
       }
 
       await axios.post(apiEndpoint, submissionData, {

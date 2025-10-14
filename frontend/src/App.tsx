@@ -21,6 +21,9 @@ import PatientReportPage from './pages/PatientReportPage';
 import ViewPatientsPage from './pages/ViewPatientsPage';
 import EditPatientPage from './pages/EditPatientPage';
 import ViewRecordsPage from './pages/ViewRecordsPage';
+import ControlPanelPage from './pages/ControlPanelPage';
+import UserManagementPage from './pages/UserManagementPage';
+import RoleManagementPage from './pages/RoleManagementPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -56,6 +59,10 @@ function App() {
               <Route path="/view-patients" element={<ViewPatientsPage />} />
               <Route path="/edit-patient/:staffId" element={<EditPatientPage />} />
               <Route path="/view-records" element={<ViewRecordsPage />} />
+              {/* Control Panel Routes */}
+              <Route path="/control-panel" element={<ControlPanelPage />} />
+              <Route path="/control-panel/user-management" element={<UserManagementPage />} />
+              <Route path="/control-panel/role-management" element={<RoleManagementPage />} />
             </Route>
           </Route>
         </Routes>

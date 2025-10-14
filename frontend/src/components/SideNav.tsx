@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaUserPlus, FaNotesMedical, FaVial, FaUserTie, FaFileMedicalAlt, FaUsers, FaBookMedical } from 'react-icons/fa';
+import { FaTachometerAlt, FaUserPlus, FaNotesMedical, FaVial, FaUserTie, FaFileMedicalAlt, FaUsers, FaBookMedical, FaCogs } from 'react-icons/fa';
 
 const NavContainer = styled.nav`
   background-color: ${({ theme }) => theme.cardBg};
@@ -96,6 +96,13 @@ const SideNav: React.FC = () => {
           <StyledNavLink to="/view-records">
             <IconWrapper><FaBookMedical /></IconWrapper>
             <span>View Records</span>
+          </StyledNavLink>
+        </NavItem>
+        {/* Admin Section */}
+        <NavItem style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #e0e0e0' }}>
+          <StyledNavLink to="/control-panel">
+            <IconWrapper><FaCogs /></IconWrapper>
+            <span>Control Panel</span>
           </StyledNavLink>
         </NavItem>
       </NavList>
