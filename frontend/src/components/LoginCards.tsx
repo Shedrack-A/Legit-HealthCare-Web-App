@@ -52,7 +52,8 @@ const LoginCards: React.FC = () => {
       <Card>
         <CardTitle>Staff Portal</CardTitle>
         <p>Login or sign up to access the staff dashboard.</p>
-        <CardButton to="/signup">Login / Sign Up</CardButton>
+        <CardButton to="/login">Login</CardButton>
+        <CardButton to="/signup" style={{ marginLeft: '1rem' }}>Sign Up</CardButton>
       </Card>
       <Card>
         <CardTitle>Patient Portal</CardTitle>
