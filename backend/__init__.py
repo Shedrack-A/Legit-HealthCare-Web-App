@@ -28,4 +28,24 @@ def create_app(config_class='backend.config.Config'):
     from . import models
     app.register_blueprint(routes.bp)
 
+    @app.cli.command("register-permissions")
+    def register_permissions():
+        """Creates all defined permissions in the database."""
+        from .models import Permission, db
+
+        permissions = [
+            'manage_users', 'manage_roles', 'register_patient', 'view_patient_data',
+            'manage_patient_records', 'manage_screening_records', 'perform_consultation',
+            'enter_test_results', 'perform_director_review', 'view_statistics'
+        ]
+
+        for name in permissions:
+            if not Permission.query.filter_by(name=name).first():
+                permission = Permission(name=name)
+                db.session.add(permission)
+                print(f"Permission '{name}' created.")
+
+        db.session.commit()
+        print("Permissions registration complete.")
+
     return app

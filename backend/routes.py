@@ -62,10 +62,16 @@ def login():
 
     return jsonify({'token': token})
 
-def token_required(permission=None):
-    def decorator(f):
+def token_required(func_or_permission=None):
+    # This allows the decorator to be used as @token_required or @token_required('permission')
+    if callable(func_or_permission):
+        # Called as @token_required
+        permission = None
+        f = func_or_permission
+
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            # ... (the actual decorator logic)
             token = None
             if 'Authorization' in request.headers:
                 token = request.headers['Authorization'].split(" ")[1]
@@ -79,14 +85,36 @@ def token_required(permission=None):
             except:
                 return jsonify({'message': 'Token is invalid!'}), 401
 
-            if permission:
-                user_permissions = {p.name for role in current_user.roles for p in role.permissions}
-                if permission not in user_permissions:
-                    return jsonify({'message': 'You do not have permission to perform this action.'}), 403
-
             return f(current_user, *args, **kwargs)
         return decorated_function
-    return decorator
+    else:
+        # Called as @token_required('permission')
+        permission = func_or_permission
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                # ... (the actual decorator logic with permission check)
+                token = None
+                if 'Authorization' in request.headers:
+                    token = request.headers['Authorization'].split(" ")[1]
+
+                if not token:
+                    return jsonify({'message': 'Token is missing!'}), 401
+
+                try:
+                    data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+                    current_user = User.query.get(data['user_id'])
+                except:
+                    return jsonify({'message': 'Token is invalid!'}), 401
+
+                if permission:
+                    user_permissions = {p.name for role in current_user.roles for p in role.permissions}
+                    if permission not in user_permissions:
+                        return jsonify({'message': 'You do not have permission to perform this action.'}), 403
+
+                return f(current_user, *args, **kwargs)
+            return decorated_function
+        return decorator
 
 @bp.route('/profile')
 @token_required
@@ -101,7 +129,7 @@ def profile(current_user):
     return jsonify(user_data)
 
 @bp.route('/patients', methods=['POST'])
-@token_required
+@token_required('register_patient')
 def create_patient(current_user):
     data = request.get_json()
     if not data:
@@ -142,7 +170,7 @@ def create_patient(current_user):
     return jsonify({'message': 'Patient registered successfully'}), 201
 
 @bp.route('/patients/search', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def search_patient(current_user):
     staff_id = request.args.get('staff_id')
     if not staff_id:
@@ -170,7 +198,7 @@ def search_patient(current_user):
     return jsonify(patient_data)
 
 @bp.route('/patient-summary/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_patient_summary(current_user, staff_id):
     """
     Aggregates all data for a single patient from multiple tables.
@@ -216,7 +244,7 @@ def get_patient_summary(current_user, staff_id):
     return jsonify(summary)
 
 @bp.route('/save-director-review/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('perform_director_review')
 def save_director_review(current_user, staff_id):
     """
     Receives the flattened data from the Director's Form and updates all
@@ -274,7 +302,7 @@ def save_director_review(current_user, staff_id):
     return jsonify({'message': 'Director review saved successfully.'}), 200
 
 @bp.route('/patients', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_all_patients(current_user):
     """
     Returns a list of all patients in the comprehensive database.
@@ -293,7 +321,7 @@ def get_all_patients(current_user):
     return jsonify(results)
 
 @bp.route('/patient/<string:staff_id>', methods=['DELETE'])
-@token_required
+@token_required('manage_patient_records')
 def delete_patient(current_user, staff_id):
     """
     Deletes a patient and all their associated data.
@@ -304,7 +332,7 @@ def delete_patient(current_user, staff_id):
     return jsonify({'message': 'Patient deleted successfully.'}), 200
 
 @bp.route('/patient/<string:staff_id>', methods=['PUT'])
-@token_required
+@token_required('manage_patient_records')
 def update_patient(current_user, staff_id):
     """
     Updates a patient's comprehensive bio-data.
@@ -332,7 +360,7 @@ def update_patient(current_user, staff_id):
     return jsonify({'message': 'Patient updated successfully.'}), 200
 
 @bp.route('/screening/records', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_screening_records(current_user):
     """
     Returns a list of patients registered for a specific screening year and company.
@@ -371,7 +399,7 @@ def get_screening_records(current_user):
     } for r in records])
 
 @bp.route('/screening/record/<int:record_id>', methods=['DELETE'])
-@token_required
+@token_required('manage_screening_records')
 def delete_screening_record(current_user, record_id):
     """
     Deletes a specific screening record.
@@ -382,7 +410,7 @@ def delete_screening_record(current_user, record_id):
     return jsonify({'message': 'Screening record deleted successfully.'}), 200
 
 @bp.route('/consultations', methods=['POST'])
-@token_required
+@token_required('perform_consultation')
 def create_or_update_consultation(current_user):
     data = request.get_json()
     if not data or not data.get('staff_id'):
@@ -406,7 +434,7 @@ def create_or_update_consultation(current_user):
     return jsonify({'message': 'Consultation saved successfully'}), 200
 
 @bp.route('/consultations/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_consultation(current_user, staff_id):
     consultation = db.session.query(Consultation).join(Patient).filter(Patient.staff_id == staff_id).first()
     if not consultation:
@@ -448,83 +476,83 @@ def get_test_result(model, staff_id):
 
 # --- Full Blood Count ---
 @bp.route('/test-results/full-blood-count/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_fbc(current_user, staff_id):
     return create_or_update_test_result(FullBloodCount, staff_id)
 
 @bp.route('/test-results/full-blood-count/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_fbc(current_user, staff_id):
     return get_test_result(FullBloodCount, staff_id)
 
 # --- Kidney Function Test ---
 @bp.route('/test-results/kidney-function-test/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_kft(current_user, staff_id):
     return create_or_update_test_result(KidneyFunctionTest, staff_id)
 
 @bp.route('/test-results/kidney-function-test/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_kft(current_user, staff_id):
     return get_test_result(KidneyFunctionTest, staff_id)
 
 # --- Lipid Profile ---
 @bp.route('/test-results/lipid-profile/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_lp(current_user, staff_id):
     return create_or_update_test_result(LipidProfile, staff_id)
 
 @bp.route('/test-results/lipid-profile/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_lp(current_user, staff_id):
     return get_test_result(LipidProfile, staff_id)
 
 # --- Liver Function Test ---
 @bp.route('/test-results/liver-function-test/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_lft(current_user, staff_id):
     return create_or_update_test_result(LiverFunctionTest, staff_id)
 
 @bp.route('/test-results/liver-function-test/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_lft(current_user, staff_id):
     return get_test_result(LiverFunctionTest, staff_id)
 
 # --- ECG ---
 @bp.route('/test-results/ecg/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_ecg(current_user, staff_id):
     return create_or_update_test_result(ECG, staff_id)
 
 @bp.route('/test-results/ecg/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_ecg(current_user, staff_id):
     return get_test_result(ECG, staff_id)
 
 # --- Spirometry ---
 @bp.route('/test-results/spirometry/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_spirometry(current_user, staff_id):
     return create_or_update_test_result(Spirometry, staff_id)
 
 @bp.route('/test-results/spirometry/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_spirometry(current_user, staff_id):
     return get_test_result(Spirometry, staff_id)
 
 # --- Audiometry ---
 @bp.route('/test-results/audiometry/<string:staff_id>', methods=['POST'])
-@token_required
+@token_required('enter_test_results')
 def save_audiometry(current_user, staff_id):
     return create_or_update_test_result(Audiometry, staff_id)
 
 @bp.route('/test-results/audiometry/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_audiometry(current_user, staff_id):
     return get_test_result(Audiometry, staff_id)
 
 @bp.route('/screening/register', methods=['POST'])
-@token_required
+@token_required('register_patient')
 def register_for_screening(current_user):
     data = request.get_json()
     if not data:
@@ -611,7 +639,7 @@ def register_for_screening(current_user):
     return jsonify({'message': 'Patient registered for screening successfully.'}), 201
 
 @bp.route('/screening/stats', methods=['GET'])
-@token_required
+@token_required('view_statistics')
 def screening_stats(current_user):
     # --- 1. Get and Validate Query Parameters ---
     screening_year = request.args.get('screening_year', type=int)
@@ -660,7 +688,7 @@ def screening_stats(current_user):
     return jsonify(stats)
 
 @bp.route('/screening/search', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def search_screened_patients(current_user):
     # --- 1. Get and Validate Query Parameters ---
     screening_year = request.args.get('screening_year', type=int)
@@ -698,7 +726,7 @@ def search_screened_patients(current_user):
     return jsonify(results)
 
 @bp.route('/patient/<string:staff_id>', methods=['GET'])
-@token_required
+@token_required('view_patient_data')
 def get_patient_by_staff_id(current_user, staff_id):
     patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
 
