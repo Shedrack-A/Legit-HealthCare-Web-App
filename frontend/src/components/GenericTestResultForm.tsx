@@ -23,12 +23,17 @@ const FormInput = styled.input`
   border-radius: 4px;
 `;
 
+const FormSelect = styled.select`
+  padding: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: 4px;
+`;
+
 const FormTextArea = styled.textarea`
   padding: 0.75rem;
   border: 1px solid ${({ theme }) => theme.cardBorder};
   border-radius: 4px;
   min-height: 80px;
-  grid-column: 1 / -1;
 `;
 
 const SubmitButton = styled.button`
@@ -42,77 +47,108 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
-interface GenericTestResultFormProps {
-  patient: any;
-  fields: { name: string, label: string, type: 'text' | 'number' | 'textarea' }[];
-  apiUrl: string;
-  onFormChange?: (data: any) => void;
-  initialValues?: any;
+interface FormField {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'textarea' | 'select';
+  options?: string[];
 }
 
-const GenericTestResultForm: React.FC<GenericTestResultFormProps> = ({ patient, fields, apiUrl, onFormChange, initialValues }) => {
-  const [formData, setFormData] = useState<any>(initialValues || {});
+interface GenericFormProps {
+  patientId: string;
+  formFields: FormField[];
+  apiEndpoint: string;
+  fetchEndpoint: string;
+  title: string;
+}
+
+const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFields, apiEndpoint, fetchEndpoint, title }) => {
+  const [formData, setFormData] = useState<any>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!patientId || !fetchEndpoint) return;
+      setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/${apiUrl}/${patient.id}`, {
+        const response = await axios.get(fetchEndpoint, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setFormData({ ...initialValues, ...response.data });
+        setFormData(response.data || {});
       } catch (error) {
-        console.log("No existing data found.");
+        console.log("No existing data found for this test/consultation.");
+        setFormData({});
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, [patient.id, apiUrl, initialValues]);
+  }, [patientId, fetchEndpoint]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const newData = { ...formData, [name]: value };
-    setFormData(newData);
-    if (onFormChange) {
-      onFormChange(newData);
-    }
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`/api/${apiUrl}/${patient.id}`, formData, {
+      // For consultation, the patient_id must be in the body
+      const submissionData = { ...formData, patient_id: patientId };
+
+      await axios.post(apiEndpoint, submissionData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Test result saved successfully!');
-    } catch (error) {
-      console.error('Failed to save test result:', error);
-      alert('Failed to save test result.');
+      alert(`${title} data saved successfully!`);
+    } catch (error: any) {
+      console.error(`Failed to save ${title} data:`, error);
+      const errorMessage = error.response?.data?.message || `Failed to save ${title} data.`;
+      alert(errorMessage);
     }
   };
 
+  const renderField = (field: FormField) => {
+    const { name, label, type, options } = field;
+    const value = formData[name] || '';
+
+    switch (type) {
+      case 'textarea':
+        return (
+          <FormGroup key={name} style={{ gridColumn: '1 / -1' }}>
+            <FormLabel htmlFor={name}>{label}</FormLabel>
+            <FormTextArea id={name} name={name} value={value} onChange={handleChange} />
+          </FormGroup>
+        );
+      case 'select':
+        return (
+          <FormGroup key={name}>
+            <FormLabel htmlFor={name}>{label}</FormLabel>
+            <FormSelect id={name} name={name} value={value} onChange={handleChange}>
+              <option value="">Select...</option>
+              {options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </FormSelect>
+          </FormGroup>
+        );
+      default:
+        return (
+          <FormGroup key={name}>
+            <FormLabel htmlFor={name}>{label}</FormLabel>
+            <FormInput id={name} type={type} name={name} value={value} onChange={handleChange} />
+          </FormGroup>
+        );
+    }
+  };
+
+  if (loading) {
+    return <p>Loading form data...</p>;
+  }
+
   return (
     <FormContainer onSubmit={handleSubmit}>
-      {fields.map(field => (
-        field.type === 'textarea' ? (
-          <FormGroup key={field.name} style={{ gridColumn: '1 / -1' }}>
-            <FormLabel>{field.label}</FormLabel>
-            <FormTextArea name={field.name} value={formData[field.name] || ''} onChange={handleChange} />
-          </FormGroup>
-        ) : (
-          <FormGroup key={field.name}>
-            <FormLabel>{field.label}</FormLabel>
-            <FormInput
-              type={field.type}
-              name={field.name}
-              value={formData[field.name] || ''}
-              onChange={handleChange}
-              readOnly={!!initialValues[field.name]}
-            />
-          </FormGroup>
-        )
-      ))}
-      <SubmitButton type="submit">Save Results</SubmitButton>
+      {formFields.map(renderField)}
+      <SubmitButton type="submit">Save {title}</SubmitButton>
     </FormContainer>
   );
 };

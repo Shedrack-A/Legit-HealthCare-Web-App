@@ -440,3 +440,56 @@ def screening_stats(current_user):
     }
 
     return jsonify(stats)
+
+@bp.route('/screening/search', methods=['GET'])
+@token_required
+def search_screened_patients(current_user):
+    # --- 1. Get and Validate Query Parameters ---
+    screening_year = request.args.get('screening_year', type=int)
+    company_section = request.args.get('company_section')
+    search_term = request.args.get('searchTerm', '')
+
+    if not screening_year or not company_section:
+        return jsonify({'message': 'screening_year and company_section parameters are required'}), 400
+
+    # --- 2. Build the Query ---
+    query = db.session.query(
+        Patient
+    ).join(
+        ScreeningBioData, Patient.id == ScreeningBioData.patient_comprehensive_id
+    ).filter(
+        ScreeningBioData.screening_year == screening_year,
+        ScreeningBioData.company_section == company_section
+    )
+
+    if search_term:
+        query = query.filter(Patient.staff_id.ilike(f'%{search_term}%'))
+
+    # --- 3. Execute Query and Format Results ---
+    patients = query.limit(10).all() # Limit results for performance
+
+    results = [{
+        'id': p.id,
+        'staff_id': p.staff_id,
+        'first_name': p.first_name,
+        'last_name': p.last_name,
+        'department': p.department,
+        'age': (date.today().year - p.date_of_birth.year)
+    } for p in patients]
+
+    return jsonify(results)
+
+@bp.route('/patient/<int:patient_id>', methods=['GET'])
+@token_required
+def get_patient_by_id(current_user, patient_id):
+    patient = Patient.query.get_or_404(patient_id)
+
+    patient_data = {
+        'id': patient.id,
+        'staff_id': patient.staff_id,
+        'first_name': patient.first_name,
+        'last_name': patient.last_name,
+        'department': patient.department,
+        'age': (date.today().year - patient.date_of_birth.year)
+    }
+    return jsonify(patient_data)

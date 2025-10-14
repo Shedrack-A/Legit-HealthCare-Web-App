@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PatientRegistrationPage from './pages/PatientRegistrationPage';
 import ConsultationPage from './pages/ConsultationPage';
+import ConsultationFormPage from './pages/ConsultationFormPage';
 import ProtectedLayout from './components/ProtectedLayout';
 import TestResultsLandingPage from './pages/TestResultsLandingPage';
 import FullBloodCountPage from './pages/test-results/FullBloodCountPage';
@@ -42,6 +43,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/register-patient" element={<PatientRegistrationPage />} />
               <Route path="/consultation" element={<ConsultationPage />} />
+              <Route path="/consultation/form/:patientId" element={<ConsultationFormPage />} />
               <Route path="/test-results" element={<TestResultsLandingPage />} />
               <Route path="/test-results/full-blood-count" element={<FullBloodCountPage />} />
               <Route path="/test-results/kidney-function-test" element={<KidneyFunctionTestPage />} />
