@@ -12,10 +12,10 @@ const AudiometryPage: React.FC = () => {
     <TestResultLayout title="Audiometry">
       {(patient) => (
         <GenericTestResultForm
-          patientId={patient.id}
+          patientId={patient.staff_id}
           formFields={audiometryFields}
-          apiEndpoint={`/api/test-results/audiometry/${patient.id}`}
-          fetchEndpoint={`/api/test-results/audiometry/${patient.id}`}
+          apiEndpoint={`/api/test-results/audiometry/${patient.staff_id}`}
+          fetchEndpoint={`/api/test-results/audiometry/${patient.staff_id}`}
           title="Audiometry"
         />
       )}

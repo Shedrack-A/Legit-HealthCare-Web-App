@@ -45,16 +45,16 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/register-patient" element={<PatientRegistrationPage />} />
               <Route path="/consultation" element={<ConsultationPage />} />
-              <Route path="/consultation/form/:patientId" element={<ConsultationFormPage />} />
+              <Route path="/consultation/form/:staffId" element={<ConsultationFormPage />} />
               <Route path="/test-results" element={<TestResultsLandingPage />} />
               <Route path="/test-results/:testType/search" element={<TestResultSearchPage />} />
-              <Route path="/test-results/:testType/form/:patientId" element={<TestResultFormPage />} />
+              <Route path="/test-results/:testType/form/:staffId" element={<TestResultFormPage />} />
               <Route path="/director-review/search" element={<DirectorReviewSearchPage />} />
-              <Route path="/director-review/form/:patientId" element={<DirectorReviewFormPage />} />
+              <Route path="/director-review/form/:staffId" element={<DirectorReviewFormPage />} />
               <Route path="/patient-report/search" element={<PatientReportSearchPage />} />
-              <Route path="/patient-report/view/:patientId" element={<PatientReportPage />} />
+              <Route path="/patient-report/view/:staffId" element={<PatientReportPage />} />
               <Route path="/view-patients" element={<ViewPatientsPage />} />
-              <Route path="/edit-patient/:patientId" element={<EditPatientPage />} />
+              <Route path="/edit-patient/:staffId" element={<EditPatientPage />} />
               <Route path="/view-records" element={<ViewRecordsPage />} />
             </Route>
           </Route>

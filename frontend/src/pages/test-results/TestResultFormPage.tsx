@@ -32,7 +32,7 @@ interface PatientData {
 }
 
 const TestResultFormPage: React.FC = () => {
-  const { testType, patientId } = useParams<{ testType: string; patientId: string }>();
+  const { testType, staffId } = useParams<{ testType: string; staffId: string }>();
   const testConfig = testType ? TEST_TYPE_CONFIG[testType] : null;
 
   const [patient, setPatient] = useState<PatientData | null>(null);
@@ -40,11 +40,11 @@ const TestResultFormPage: React.FC = () => {
 
   useEffect(() => {
     const fetchPatientDetails = async () => {
-      if (!patientId) return;
+      if (!staffId) return;
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient/${patientId}`, {
+        const response = await axios.get(`/api/patient/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPatient(response.data);
@@ -56,7 +56,7 @@ const TestResultFormPage: React.FC = () => {
       }
     };
     fetchPatientDetails();
-  }, [patientId]);
+  }, [staffId]);
 
   if (!testConfig) {
     return (
@@ -100,7 +100,7 @@ const TestResultFormPage: React.FC = () => {
     return <p>Could not load patient details.</p>;
   }
 
-  const apiEndpoint = `/api/test-results/${testType}/${patientId}`;
+  const apiEndpoint = `/api/test-results/${testType}/${staffId}`;
 
   return (
     <PageContainer>
@@ -112,7 +112,7 @@ const TestResultFormPage: React.FC = () => {
       </PatientHeader>
 
       <GenericTestResultForm
-        patientId={patientId || ''}
+        patientId={staffId || ''}
         formFields={testConfig.fields}
         apiEndpoint={apiEndpoint}
         fetchEndpoint={apiEndpoint}

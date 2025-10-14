@@ -36,17 +36,17 @@ const DownloadButton = styled.button`
 `;
 
 const PatientReportPage: React.FC = () => {
-  const { patientId } = useParams<{ patientId: string }>();
+  const { staffId } = useParams<{ staffId: string }>();
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSummary = async () => {
-      if (!patientId) return;
+      if (!staffId) return;
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient-summary/${patientId}`, {
+        const response = await axios.get(`/api/patient-summary/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSummary(response.data);
@@ -58,7 +58,7 @@ const PatientReportPage: React.FC = () => {
       }
     };
     fetchSummary();
-  }, [patientId]);
+  }, [staffId]);
 
   if (loading) {
     return <PageContainer><p>Loading patient report...</p></PageContainer>;

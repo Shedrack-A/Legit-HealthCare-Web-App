@@ -52,18 +52,18 @@ const SubmitButton = styled.button`
 `;
 
 const EditPatientPage: React.FC = () => {
-  const { patientId } = useParams<{ patientId: string }>();
+  const { staffId } = useParams<{ staffId: string }>();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPatientData = async () => {
-      if (!patientId) return;
+      if (!staffId) return;
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient-summary/${patientId}`, {
+        const response = await axios.get(`/api/patient-summary/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         // The summary might have more fields than we need, but that's okay
@@ -75,7 +75,7 @@ const EditPatientPage: React.FC = () => {
       }
     };
     fetchPatientData();
-  }, [patientId]);
+  }, [staffId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -83,10 +83,10 @@ const EditPatientPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patientId) return;
+    if (!staffId) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/patient/${patientId}`, formData, {
+      await axios.put(`/api/patient/${staffId}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert('Patient updated successfully!');

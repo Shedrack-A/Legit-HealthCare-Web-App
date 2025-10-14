@@ -81,10 +81,13 @@ const generateYears = () => {
 
 interface ScreenedPatient {
   record_id: number;
-  patient_id: number;
+  patient_id: string; // This is the patient_id_for_year
   staff_id: string;
   first_name: string;
   last_name: string;
+  department: string;
+  gender: string;
+  contact_phone: string;
 }
 
 const ViewRecordsPage: React.FC = () => {
@@ -132,8 +135,9 @@ const ViewRecordsPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (patientId: number) => {
-    navigate(`/edit-patient/${patientId}`);
+  // Edit now navigates using the staff_id, as the patient_id is year-specific and not the comprehensive ID
+  const handleEdit = (staffId: string) => {
+    navigate(`/edit-patient/${staffId}`);
   };
 
   return (
@@ -160,20 +164,28 @@ const ViewRecordsPage: React.FC = () => {
         <RecordTable>
           <thead>
             <tr>
+              <Th>Patient ID</Th>
               <Th>Staff ID</Th>
               <Th>First Name</Th>
               <Th>Last Name</Th>
+              <Th>Department</Th>
+              <Th>Gender</Th>
+              <Th>Contact Phone</Th>
               <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
             {records.map((record) => (
               <tr key={record.record_id}>
+                <Td>{record.patient_id}</Td>
                 <Td>{record.staff_id}</Td>
                 <Td>{record.first_name}</Td>
                 <Td>{record.last_name}</Td>
+                <Td>{record.department}</Td>
+                <Td>{record.gender}</Td>
+                <Td>{record.contact_phone}</Td>
                 <Td>
-                  <EditButton onClick={() => handleEdit(record.patient_id)}>Edit</EditButton>
+                  <EditButton onClick={() => handleEdit(record.staff_id)}>Edit</EditButton>
                   <DeleteButton onClick={() => handleDelete(record.record_id)}>Delete</DeleteButton>
                 </Td>
               </tr>

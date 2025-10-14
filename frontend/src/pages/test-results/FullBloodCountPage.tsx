@@ -28,10 +28,10 @@ const FullBloodCountPage: React.FC = () => {
     <TestResultLayout title="Full Blood Count">
       {(patient) => (
         <GenericTestResultForm
-          patientId={patient.id}
+          patientId={patient.staff_id}
           formFields={fbcFields}
-          apiEndpoint={`/api/test-results/full-blood-count/${patient.id}`}
-          fetchEndpoint={`/api/test-results/full-blood-count/${patient.id}`}
+          apiEndpoint={`/api/test-results/full-blood-count/${patient.staff_id}`}
+          fetchEndpoint={`/api/test-results/full-blood-count/${patient.staff_id}`}
           title="Full Blood Count"
         />
       )}

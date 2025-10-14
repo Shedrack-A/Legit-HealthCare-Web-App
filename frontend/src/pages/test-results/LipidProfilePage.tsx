@@ -44,10 +44,10 @@ const LipidProfilePage: React.FC = () => {
     <TestResultLayout title="Lipid Profile">
       {(patient) => (
         <GenericTestResultForm
-          patientId={patient.id}
+          patientId={patient.staff_id}
           formFields={lpFields}
-          apiEndpoint={`/api/test-results/lipid-profile/${patient.id}`}
-          fetchEndpoint={`/api/test-results/lipid-profile/${patient.id}`}
+          apiEndpoint={`/api/test-results/lipid-profile/${patient.staff_id}`}
+          fetchEndpoint={`/api/test-results/lipid-profile/${patient.staff_id}`}
           title="Lipid Profile"
           calculations={lpCalculations}
         />

@@ -163,13 +163,13 @@ def search_patient(current_user):
     }
     return jsonify(patient_data)
 
-@bp.route('/patient-summary/<int:patient_id>', methods=['GET'])
+@bp.route('/patient-summary/<string:staff_id>', methods=['GET'])
 @token_required
-def get_patient_summary(current_user, patient_id):
+def get_patient_summary(current_user, staff_id):
     """
     Aggregates all data for a single patient from multiple tables.
     """
-    patient = Patient.query.get_or_404(patient_id)
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
 
     # Start with the patient's own data
     summary = {
@@ -209,9 +209,9 @@ def get_patient_summary(current_user, patient_id):
 
     return jsonify(summary)
 
-@bp.route('/save-director-review/<int:patient_id>', methods=['POST'])
+@bp.route('/save-director-review/<string:staff_id>', methods=['POST'])
 @token_required
-def save_director_review(current_user, patient_id):
+def save_director_review(current_user, staff_id):
     """
     Receives the flattened data from the Director's Form and updates all
     the corresponding database models.
@@ -220,7 +220,7 @@ def save_director_review(current_user, patient_id):
     if not data:
         return jsonify({'message': 'No input data provided'}), 400
 
-    patient = Patient.query.get_or_404(patient_id)
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
 
     # Helper function to update an object with data from the form
     def update_model(obj, model_fields):
@@ -276,32 +276,34 @@ def get_all_patients(current_user):
     patients = Patient.query.order_by(Patient.first_name, Patient.last_name).all()
 
     results = [{
-        'id': p.id,
         'staff_id': p.staff_id,
         'first_name': p.first_name,
         'last_name': p.last_name,
+        'department': p.department,
+        'gender': p.gender,
+        'contact_phone': p.contact_phone,
     } for p in patients]
 
     return jsonify(results)
 
-@bp.route('/patient/<int:patient_id>', methods=['DELETE'])
+@bp.route('/patient/<string:staff_id>', methods=['DELETE'])
 @token_required
-def delete_patient(current_user, patient_id):
+def delete_patient(current_user, staff_id):
     """
     Deletes a patient and all their associated data.
     """
-    patient = Patient.query.get_or_404(patient_id)
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
     db.session.delete(patient)
     db.session.commit()
     return jsonify({'message': 'Patient deleted successfully.'}), 200
 
-@bp.route('/patient/<int:patient_id>', methods=['PUT'])
+@bp.route('/patient/<string:staff_id>', methods=['PUT'])
 @token_required
-def update_patient(current_user, patient_id):
+def update_patient(current_user, staff_id):
     """
     Updates a patient's comprehensive bio-data.
     """
-    patient = Patient.query.get_or_404(patient_id)
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
     data = request.get_json()
     if not data:
         return jsonify({'message': 'No input data provided'}), 400
@@ -337,10 +339,13 @@ def get_screening_records(current_user):
 
     records = db.session.query(
         ScreeningBioData.id.label('record_id'),
-        Patient.id.label('patient_id'),
+        ScreeningBioData.patient_id_for_year.label('patient_id'),
         Patient.staff_id,
         Patient.first_name,
-        Patient.last_name
+        Patient.last_name,
+        Patient.department,
+        Patient.gender,
+        Patient.contact_phone
     ).join(
         Patient, ScreeningBioData.patient_comprehensive_id == Patient.id
     ).filter(
@@ -353,7 +358,10 @@ def get_screening_records(current_user):
         'patient_id': r.patient_id,
         'staff_id': r.staff_id,
         'first_name': r.first_name,
-        'last_name': r.last_name
+        'last_name': r.last_name,
+        'department': r.department,
+        'gender': r.gender,
+        'contact_phone': r.contact_phone,
     } for r in records])
 
 @bp.route('/screening/record/<int:record_id>', methods=['DELETE'])
@@ -371,10 +379,10 @@ def delete_screening_record(current_user, record_id):
 @token_required
 def create_or_update_consultation(current_user):
     data = request.get_json()
-    if not data or not data.get('patient_id'):
-        return jsonify({'message': 'Patient ID is required'}), 400
+    if not data or not data.get('staff_id'):
+        return jsonify({'message': 'Staff ID is required'}), 400
 
-    patient = Patient.query.get(data['patient_id'])
+    patient = Patient.query.filter_by(staff_id=data['staff_id']).first()
     if not patient:
         return jsonify({'message': 'Patient not found'}), 404
 
@@ -391,10 +399,10 @@ def create_or_update_consultation(current_user):
     db.session.commit()
     return jsonify({'message': 'Consultation saved successfully'}), 200
 
-@bp.route('/consultations/<int:patient_id>', methods=['GET'])
+@bp.route('/consultations/<string:staff_id>', methods=['GET'])
 @token_required
-def get_consultation(current_user, patient_id):
-    consultation = Consultation.query.filter_by(patient_id=patient_id).first()
+def get_consultation(current_user, staff_id):
+    consultation = db.session.query(Consultation).join(Patient).filter(Patient.staff_id == staff_id).first()
     if not consultation:
         return jsonify({'message': 'Consultation not found'}), 404
 
@@ -402,12 +410,12 @@ def get_consultation(current_user, patient_id):
     return jsonify(consultation_data)
 
 # Helper function for creating/updating test results
-def create_or_update_test_result(model, patient_id):
+def create_or_update_test_result(model, staff_id):
     data = request.get_json()
     if not data:
         return jsonify({'message': 'No input data provided'}), 400
 
-    patient = Patient.query.get(patient_id)
+    patient = Patient.query.filter_by(staff_id=staff_id).first()
     if not patient:
         return jsonify({'message': 'Patient not found'}), 404
 
@@ -424,8 +432,8 @@ def create_or_update_test_result(model, patient_id):
     return jsonify({'message': 'Test result saved successfully'}), 200
 
 # Helper function for getting test results
-def get_test_result(model, patient_id):
-    result = model.query.filter_by(patient_id=patient_id).first()
+def get_test_result(model, staff_id):
+    result = db.session.query(model).join(Patient).filter(Patient.staff_id == staff_id).first()
     if not result:
         return jsonify({'message': 'Test result not found'}), 404
 
@@ -433,81 +441,81 @@ def get_test_result(model, patient_id):
     return jsonify(result_data)
 
 # --- Full Blood Count ---
-@bp.route('/test-results/full-blood-count/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/full-blood-count/<string:staff_id>', methods=['POST'])
 @token_required
-def save_fbc(current_user, patient_id):
-    return create_or_update_test_result(FullBloodCount, patient_id)
+def save_fbc(current_user, staff_id):
+    return create_or_update_test_result(FullBloodCount, staff_id)
 
-@bp.route('/test-results/full-blood-count/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/full-blood-count/<string:staff_id>', methods=['GET'])
 @token_required
-def get_fbc(current_user, patient_id):
-    return get_test_result(FullBloodCount, patient_id)
+def get_fbc(current_user, staff_id):
+    return get_test_result(FullBloodCount, staff_id)
 
 # --- Kidney Function Test ---
-@bp.route('/test-results/kidney-function-test/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/kidney-function-test/<string:staff_id>', methods=['POST'])
 @token_required
-def save_kft(current_user, patient_id):
-    return create_or_update_test_result(KidneyFunctionTest, patient_id)
+def save_kft(current_user, staff_id):
+    return create_or_update_test_result(KidneyFunctionTest, staff_id)
 
-@bp.route('/test-results/kidney-function-test/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/kidney-function-test/<string:staff_id>', methods=['GET'])
 @token_required
-def get_kft(current_user, patient_id):
-    return get_test_result(KidneyFunctionTest, patient_id)
+def get_kft(current_user, staff_id):
+    return get_test_result(KidneyFunctionTest, staff_id)
 
 # --- Lipid Profile ---
-@bp.route('/test-results/lipid-profile/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/lipid-profile/<string:staff_id>', methods=['POST'])
 @token_required
-def save_lp(current_user, patient_id):
-    return create_or_update_test_result(LipidProfile, patient_id)
+def save_lp(current_user, staff_id):
+    return create_or_update_test_result(LipidProfile, staff_id)
 
-@bp.route('/test-results/lipid-profile/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/lipid-profile/<string:staff_id>', methods=['GET'])
 @token_required
-def get_lp(current_user, patient_id):
-    return get_test_result(LipidProfile, patient_id)
+def get_lp(current_user, staff_id):
+    return get_test_result(LipidProfile, staff_id)
 
 # --- Liver Function Test ---
-@bp.route('/test-results/liver-function-test/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/liver-function-test/<string:staff_id>', methods=['POST'])
 @token_required
-def save_lft(current_user, patient_id):
-    return create_or_update_test_result(LiverFunctionTest, patient_id)
+def save_lft(current_user, staff_id):
+    return create_or_update_test_result(LiverFunctionTest, staff_id)
 
-@bp.route('/test-results/liver-function-test/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/liver-function-test/<string:staff_id>', methods=['GET'])
 @token_required
-def get_lft(current_user, patient_id):
-    return get_test_result(LiverFunctionTest, patient_id)
+def get_lft(current_user, staff_id):
+    return get_test_result(LiverFunctionTest, staff_id)
 
 # --- ECG ---
-@bp.route('/test-results/ecg/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/ecg/<string:staff_id>', methods=['POST'])
 @token_required
-def save_ecg(current_user, patient_id):
-    return create_or_update_test_result(ECG, patient_id)
+def save_ecg(current_user, staff_id):
+    return create_or_update_test_result(ECG, staff_id)
 
-@bp.route('/test-results/ecg/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/ecg/<string:staff_id>', methods=['GET'])
 @token_required
-def get_ecg(current_user, patient_id):
-    return get_test_result(ECG, patient_id)
+def get_ecg(current_user, staff_id):
+    return get_test_result(ECG, staff_id)
 
 # --- Spirometry ---
-@bp.route('/test-results/spirometry/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/spirometry/<string:staff_id>', methods=['POST'])
 @token_required
-def save_spirometry(current_user, patient_id):
-    return create_or_update_test_result(Spirometry, patient_id)
+def save_spirometry(current_user, staff_id):
+    return create_or_update_test_result(Spirometry, staff_id)
 
-@bp.route('/test-results/spirometry/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/spirometry/<string:staff_id>', methods=['GET'])
 @token_required
-def get_spirometry(current_user, patient_id):
-    return get_test_result(Spirometry, patient_id)
+def get_spirometry(current_user, staff_id):
+    return get_test_result(Spirometry, staff_id)
 
 # --- Audiometry ---
-@bp.route('/test-results/audiometry/<int:patient_id>', methods=['POST'])
+@bp.route('/test-results/audiometry/<string:staff_id>', methods=['POST'])
 @token_required
-def save_audiometry(current_user, patient_id):
-    return create_or_update_test_result(Audiometry, patient_id)
+def save_audiometry(current_user, staff_id):
+    return create_or_update_test_result(Audiometry, staff_id)
 
-@bp.route('/test-results/audiometry/<int:patient_id>', methods=['GET'])
+@bp.route('/test-results/audiometry/<string:staff_id>', methods=['GET'])
 @token_required
-def get_audiometry(current_user, patient_id):
-    return get_test_result(Audiometry, patient_id)
+def get_audiometry(current_user, staff_id):
+    return get_test_result(Audiometry, staff_id)
 
 @bp.route('/screening/register', methods=['POST'])
 @token_required
@@ -683,10 +691,10 @@ def search_screened_patients(current_user):
 
     return jsonify(results)
 
-@bp.route('/patient/<int:patient_id>', methods=['GET'])
+@bp.route('/patient/<string:staff_id>', methods=['GET'])
 @token_required
-def get_patient_by_id(current_user, patient_id):
-    patient = Patient.query.get_or_404(patient_id)
+def get_patient_by_staff_id(current_user, staff_id):
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
 
     patient_data = {
         'id': patient.id,

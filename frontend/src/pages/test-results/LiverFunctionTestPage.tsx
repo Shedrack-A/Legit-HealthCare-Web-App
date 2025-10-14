@@ -17,10 +17,10 @@ const LiverFunctionTestPage: React.FC = () => {
     <TestResultLayout title="Liver Function Test">
       {(patient) => (
         <GenericTestResultForm
-          patientId={patient.id}
+          patientId={patient.staff_id}
           formFields={lftFields}
-          apiEndpoint={`/api/test-results/liver-function-test/${patient.id}`}
-          fetchEndpoint={`/api/test-results/liver-function-test/${patient.id}`}
+          apiEndpoint={`/api/test-results/liver-function-test/${patient.staff_id}`}
+          fetchEndpoint={`/api/test-results/liver-function-test/${patient.staff_id}`}
           title="Liver Function Test"
         />
       )}

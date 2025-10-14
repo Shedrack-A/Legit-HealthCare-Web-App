@@ -31,7 +31,7 @@ interface PatientData {
 }
 
 const DirectorReviewFormPage: React.FC = () => {
-  const { patientId } = useParams<{ patientId: string }>();
+  const { staffId } = useParams<{ staffId: string }>();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,11 +42,11 @@ const DirectorReviewFormPage: React.FC = () => {
   useEffect(() => {
     // This is just to fetch the header data separately for now
     const fetchPatientDetails = async () => {
-      if (!patientId) return;
+      if (!staffId) return;
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient/${patientId}`, {
+        const response = await axios.get(`/api/patient/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPatient(response.data);
@@ -58,7 +58,7 @@ const DirectorReviewFormPage: React.FC = () => {
       }
     };
     fetchPatientDetails();
-  }, [patientId]);
+  }, [staffId]);
 
   if (loading) {
     return <p>Loading patient details...</p>;
@@ -78,10 +78,10 @@ const DirectorReviewFormPage: React.FC = () => {
       </PatientHeader>
 
       <GenericTestResultForm
-        patientId={patientId || ''}
+        patientId={staffId || ''}
         formFields={DIRECTOR_REVIEW_FIELDS}
-        apiEndpoint={`/api/save-director-review/${patientId}`}
-        fetchEndpoint={`/api/patient-summary/${patientId}`}
+        apiEndpoint={`/api/save-director-review/${staffId}`}
+        fetchEndpoint={`/api/patient-summary/${staffId}`}
         title="Director's Review"
       />
     </PageContainer>

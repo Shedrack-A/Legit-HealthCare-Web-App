@@ -12,10 +12,10 @@ const ECGPage: React.FC = () => {
     <TestResultLayout title="ECG">
       {(patient) => (
         <GenericTestResultForm
-          patientId={patient.id}
+          patientId={patient.staff_id}
           formFields={ecgFields}
-          apiEndpoint={`/api/test-results/ecg/${patient.id}`}
-          fetchEndpoint={`/api/test-results/ecg/${patient.id}`}
+          apiEndpoint={`/api/test-results/ecg/${patient.staff_id}`}
+          fetchEndpoint={`/api/test-results/ecg/${patient.staff_id}`}
           title="ECG"
         />
       )}

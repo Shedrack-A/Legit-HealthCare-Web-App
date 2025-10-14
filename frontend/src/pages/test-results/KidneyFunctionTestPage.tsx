@@ -36,10 +36,10 @@ const KidneyFunctionTestPage: React.FC = () => {
     <TestResultLayout title="Kidney Function Test">
       {(patient) => (
         <GenericTestResultForm
-          patientId={patient.id}
+          patientId={patient.staff_id}
           formFields={kftFields}
-          apiEndpoint={`/api/test-results/kidney-function-test/${patient.id}`}
-          fetchEndpoint={`/api/test-results/kidney-function-test/${patient.id}`}
+          apiEndpoint={`/api/test-results/kidney-function-test/${patient.staff_id}`}
+          fetchEndpoint={`/api/test-results/kidney-function-test/${patient.staff_id}`}
           title="Kidney Function Test"
           calculations={kftCalculations}
         />

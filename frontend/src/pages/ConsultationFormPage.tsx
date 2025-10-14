@@ -32,17 +32,17 @@ interface PatientData {
 }
 
 const ConsultationFormPage: React.FC = () => {
-  const { patientId } = useParams<{ patientId: string }>();
+  const { staffId } = useParams<{ staffId: string }>();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPatientDetails = async () => {
-      if (!patientId) return;
+      if (!staffId) return;
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient/${patientId}`, {
+        const response = await axios.get(`/api/patient/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPatient(response.data);
@@ -54,7 +54,7 @@ const ConsultationFormPage: React.FC = () => {
       }
     };
     fetchPatientDetails();
-  }, [patientId]);
+  }, [staffId]);
 
   if (loading) {
     return <p>Loading patient details...</p>;
@@ -74,10 +74,10 @@ const ConsultationFormPage: React.FC = () => {
       </PatientHeader>
 
       <GenericTestResultForm
-        patientId={patientId || ''}
+        patientId={staffId || ''}
         formFields={CONSULTATION_FIELDS}
         apiEndpoint={`/api/consultations`}
-        fetchEndpoint={`/api/consultations/${patientId}`}
+        fetchEndpoint={`/api/consultations/${staffId}`}
         title="Consultation"
       />
     </PageContainer>

@@ -47,10 +47,12 @@ const DeleteButton = styled(ActionButton)`
 `;
 
 interface Patient {
-  id: number;
   staff_id: string;
   first_name: string;
   last_name: string;
+  department: string;
+  gender: string;
+  contact_phone: string;
 }
 
 const ViewPatientsPage: React.FC = () => {
@@ -77,11 +79,11 @@ const ViewPatientsPage: React.FC = () => {
     fetchPatients();
   }, []);
 
-  const handleDelete = async (patientId: number) => {
+  const handleDelete = async (staffId: string) => {
     if (window.confirm('Are you sure you want to delete this patient and all their records?')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`/api/patient/${patientId}`, {
+        await axios.delete(`/api/patient/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         alert('Patient deleted successfully.');
@@ -93,8 +95,8 @@ const ViewPatientsPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (patientId: number) => {
-    navigate(`/edit-patient/${patientId}`);
+  const handleEdit = (staffId: string) => {
+    navigate(`/edit-patient/${staffId}`);
   };
 
   if (loading) {
@@ -110,18 +112,24 @@ const ViewPatientsPage: React.FC = () => {
             <Th>Staff ID</Th>
             <Th>First Name</Th>
             <Th>Last Name</Th>
+            <Th>Department</Th>
+            <Th>Gender</Th>
+            <Th>Contact Phone</Th>
             <Th>Actions</Th>
           </tr>
         </thead>
         <tbody>
           {patients.map((patient) => (
-            <tr key={patient.id}>
+            <tr key={patient.staff_id}>
               <Td>{patient.staff_id}</Td>
               <Td>{patient.first_name}</Td>
               <Td>{patient.last_name}</Td>
+              <Td>{patient.department}</Td>
+              <Td>{patient.gender}</Td>
+              <Td>{patient.contact_phone}</Td>
               <Td>
-                <EditButton onClick={() => handleEdit(patient.id)}>Edit</EditButton>
-                <DeleteButton onClick={() => handleDelete(patient.id)}>Delete</DeleteButton>
+                <EditButton onClick={() => handleEdit(patient.staff_id)}>Edit</EditButton>
+                <DeleteButton onClick={() => handleDelete(patient.staff_id)}>Delete</DeleteButton>
               </Td>
             </tr>
           ))}
