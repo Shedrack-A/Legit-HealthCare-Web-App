@@ -51,7 +51,47 @@ class Patient(db.Model):
     race = db.Column(db.String(50), nullable=False)
     nationality = db.Column(db.String(50), nullable=False)
     date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    consultation = db.relationship('Consultation', back_populates='patient', uselist=False, cascade="all, delete-orphan")
     # This is the comprehensive bio-data table
 
     def __repr__(self):
         return f'<Patient {self.first_name} {self.last_name}>'
+
+class Consultation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False, unique=True)
+    patient = db.relationship('Patient', back_populates='consultation')
+
+    luts = db.Column(db.String(50))
+    chronic_cough = db.Column(db.String(50))
+    chronic_chest_pain = db.Column(db.String(50))
+    chest_infection = db.Column(db.String(50))
+    heart_dx = db.Column(db.String(50))
+    palor = db.Column(db.String(50))
+    jaundice = db.Column(db.String(50))
+    murmur = db.Column(db.String(50))
+    chest = db.Column(db.String(50))
+    prostrate_specific_antigen = db.Column(db.String(50))
+    psa_remark = db.Column(db.Text)
+    fbs = db.Column(db.String(50))
+    rbs = db.Column(db.String(50))
+    fbs_rbs_remark = db.Column(db.String(50))
+    urine_analysis = db.Column(db.String(100))
+    ua_remark = db.Column(db.String(50))
+    diabetes_mellitus = db.Column(db.String(100))
+    hypertension = db.Column(db.String(100))
+    bp = db.Column(db.String(20))
+    pulse = db.Column(db.String(20))
+    spo2 = db.Column(db.String(20))
+    hs = db.Column(db.String(50))
+    breast_exam = db.Column(db.String(50))
+    breast_exam_remark = db.Column(db.Text)
+    abdomen = db.Column(db.String(50))
+    assessment_hx_pe = db.Column(db.String(100))
+    other_assessments = db.Column(db.Text)
+    overall_lab_remark = db.Column(db.Text)
+    other_remarks = db.Column(db.Text)
+    overall_assessment = db.Column(db.Text)
+
+    def __repr__(self):
+        return f'<Consultation for Patient {self.patient_id}>'

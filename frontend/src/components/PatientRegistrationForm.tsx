@@ -35,6 +35,17 @@ const SearchContainer = styled.div`
   grid-column: 1 / -1;
 `;
 
+const SubmitButton = styled.button`
+  grid-column: 4 / 5;
+  justify-self: end;
+  padding: 0.75rem 1.5rem;
+  background-color: ${({ theme }) => theme.main};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+`;
+
 const PatientRegistrationForm: React.FC = () => {
   const [formData, setFormData] = useState({
     staff_id: '',
@@ -72,7 +83,6 @@ const PatientRegistrationForm: React.FC = () => {
   useEffect(() => {
     const search = async () => {
       if (searchId.trim() === '') {
-        // Optionally clear form if search is cleared
         return;
       }
       try {
@@ -80,18 +90,16 @@ const PatientRegistrationForm: React.FC = () => {
         const response = await axios.get(`/api/patients/search?staff_id=${searchId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Ensure patient_id is handled, even if it's not in the response
         const patientData = { ...formData, ...response.data };
         setFormData(patientData);
       } catch (error) {
         console.error('Patient not found:', error);
-        // Handle not found: maybe clear form but keep searchId
       }
     };
 
     const debounceTimer = setTimeout(() => {
       search();
-    }, 500); // Wait 500ms after user stops typing
+    }, 500);
 
     return () => clearTimeout(debounceTimer);
   }, [searchId]);
@@ -100,9 +108,25 @@ const PatientRegistrationForm: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/patients', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Patient registered successfully!');
+      // Optionally clear form
+      setFormData({
+        staff_id: '', patient_id: '', first_name: '', middle_name: '', last_name: '',
+        department: '', gender: '', date_of_birth: '', age: '', contact_phone: '',
+        email_address: '', race: '', nationality: '',
+      });
+      setSearchId('');
+    } catch (error) {
+      console.error('Failed to register patient:', error);
+      alert('Failed to register patient.');
+    }
   };
 
   return (
@@ -116,28 +140,22 @@ const PatientRegistrationForm: React.FC = () => {
         />
       </SearchContainer>
 
-      {/* Row 1 */}
+      {/* Form fields... */}
       <FormGroup><FormLabel>Staff ID</FormLabel><FormInput type="text" name="staff_id" value={formData.staff_id} onChange={handleChange} /></FormGroup>
       <FormGroup><FormLabel>Patient ID</FormLabel><FormInput type="text" name="patient_id" value={formData.patient_id} readOnly /></FormGroup>
-
-      {/* Row 2 */}
       <FormGroup><FormLabel>First Name</FormLabel><FormInput type="text" name="first_name" value={formData.first_name} onChange={handleChange} /></FormGroup>
       <FormGroup><FormLabel>Middle Name</FormLabel><FormInput type="text" name="middle_name" value={formData.middle_name} onChange={handleChange} /></FormGroup>
       <FormGroup><FormLabel>Last Name</FormLabel><FormInput type="text" name="last_name" value={formData.last_name} onChange={handleChange} /></FormGroup>
       <FormGroup><FormLabel>Department</FormLabel><FormSelect name="department" value={formData.department} onChange={handleChange}><option>Select...</option>{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</FormSelect></FormGroup>
-
-      {/* Row 3 */}
       <FormGroup><FormLabel>Gender</FormLabel><FormSelect name="gender" value={formData.gender} onChange={handleChange}><option>Select...</option><option>Male</option><option>Female</option></FormSelect></FormGroup>
       <FormGroup><FormLabel>Date of Birth</FormLabel><FormInput type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} /></FormGroup>
       <FormGroup><FormLabel>Age</FormLabel><FormInput type="text" name="age" value={formData.age} readOnly /></FormGroup>
       <FormGroup><FormLabel>Contact Phone</FormLabel><FormInput type="tel" name="contact_phone" value={formData.contact_phone} onChange={handleChange} /></FormGroup>
-
-      {/* Row 4 */}
       <FormGroup><FormLabel>Email Address</FormLabel><FormInput type="email" name="email_address" value={formData.email_address} onChange={handleChange} /></FormGroup>
       <FormGroup><FormLabel>Race</FormLabel><FormSelect name="race" value={formData.race} onChange={handleChange}><option>Select...</option>{CONTINENTS.map(c => <option key={c}>{c}</option>)}</FormSelect></FormGroup>
       <FormGroup><FormLabel>Nationality</FormLabel><FormSelect name="nationality" value={formData.nationality} onChange={handleChange}><option>Select...</option>{COUNTRIES.map(c => <option key={c}>{c}</option>)}</FormSelect></FormGroup>
 
-      <button type="submit" style={{ gridColumn: '4 / 5' }}>Register Patient</button>
+      <SubmitButton type="submit">Register Patient</SubmitButton>
     </FormContainer>
   );
 };

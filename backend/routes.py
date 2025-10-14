@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from .models import User, Patient
+from .models import User, Patient, Consultation
 from . import db
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -161,3 +161,37 @@ def search_patient(current_user):
         'nationality': patient.nationality,
     }
     return jsonify(patient_data)
+
+@bp.route('/consultations', methods=['POST'])
+@token_required
+def create_or_update_consultation(current_user):
+    data = request.get_json()
+    if not data or not data.get('patient_id'):
+        return jsonify({'message': 'Patient ID is required'}), 400
+
+    patient = Patient.query.get(data['patient_id'])
+    if not patient:
+        return jsonify({'message': 'Patient not found'}), 404
+
+    consultation = Consultation.query.filter_by(patient_id=patient.id).first()
+    if not consultation:
+        consultation = Consultation(patient_id=patient.id)
+        db.session.add(consultation)
+
+    # Update consultation fields from request data
+    for key, value in data.items():
+        if hasattr(consultation, key) and key != 'patient_id':
+            setattr(consultation, key, value)
+
+    db.session.commit()
+    return jsonify({'message': 'Consultation saved successfully'}), 200
+
+@bp.route('/consultations/<int:patient_id>', methods=['GET'])
+@token_required
+def get_consultation(current_user, patient_id):
+    consultation = Consultation.query.filter_by(patient_id=patient_id).first()
+    if not consultation:
+        return jsonify({'message': 'Consultation not found'}), 404
+
+    consultation_data = {key: getattr(consultation, key) for key in consultation.__table__.columns.keys()}
+    return jsonify(consultation_data)

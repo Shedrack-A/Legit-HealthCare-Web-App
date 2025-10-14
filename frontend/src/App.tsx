@@ -8,6 +8,7 @@ import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PatientRegistrationPage from './pages/PatientRegistrationPage';
+import ConsultationPage from './pages/ConsultationPage';
 
 // Placeholder for a protected dashboard page
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
@@ -30,6 +31,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/register-patient" element={<PatientRegistrationPage />} />
+            <Route path="/consultation" element={<ConsultationPage />} />
           </Route>
         </Routes>
       </Router>
