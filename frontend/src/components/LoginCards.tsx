@@ -1,0 +1,66 @@
+import React from 'react';
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
+
+const CardsContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+`;
+
+const Card = styled.div`
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: 8px;
+  padding: 2rem;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+const CardTitle = styled.h2`
+  color: ${({ theme }) => theme.main};
+  margin-bottom: 1rem;
+`;
+
+const CardButton = styled(Link)`
+  display: inline-block;
+  background-color: ${({ theme }) => theme.main};
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const LoginCards: React.FC = () => {
+  return (
+    <CardsContainer>
+      <Card>
+        <CardTitle>Staff Portal</CardTitle>
+        <p>Login or sign up to access the staff dashboard.</p>
+        <CardButton to="/signup">Login / Sign Up</CardButton>
+      </Card>
+      <Card>
+        <CardTitle>Patient Portal</CardTitle>
+        <p>Claim your account to access your medical records.</p>
+        <CardButton to="/claim-account">Claim Account</CardButton>
+      </Card>
+    </CardsContainer>
+  );
+};
+
+export default LoginCards;
