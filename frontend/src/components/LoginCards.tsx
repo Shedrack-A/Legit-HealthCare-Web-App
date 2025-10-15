@@ -32,13 +32,14 @@ const CardTitle = styled.h2`
 const ButtonWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center the buttons */
   gap: 0.5rem;
   margin-top: 1.5rem;
 `;
 
 const CardButton = styled(Link)`
   display: block;
-  width: 100%;
+  width: 90%; /* Use a percentage to stay within the card */
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
@@ -82,7 +83,9 @@ const LoginCards: React.FC = () => {
       <Card>
         <CardTitle>Patient Portal</CardTitle>
         <p>Claim your account to access your medical records.</p>
-        <CardButton to="/claim-account">Claim Account</CardButton>
+        <ButtonWrapper>
+          <PrimaryButton to="/claim-account">Claim Account</PrimaryButton>
+        </ButtonWrapper>
       </Card>
     </CardsContainer>
   );
