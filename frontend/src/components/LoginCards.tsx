@@ -29,20 +29,42 @@ const CardTitle = styled.h2`
   margin-bottom: 1rem;
 `;
 
+const ButtonWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+`;
+
 const CardButton = styled(Link)`
-  display: inline-block;
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  border: none;
+  display: block;
+  width: 100%;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
   text-decoration: none;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  text-align: center;
+`;
+
+const PrimaryButton = styled(CardButton)`
+  background-color: ${({ theme }) => theme.main};
+  color: white;
+  border: 1px solid ${({ theme }) => theme.main};
 
   &:hover {
     background-color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const SecondaryButton = styled(CardButton)`
+  background-color: transparent;
+  color: ${({ theme }) => theme.text};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
   }
 `;
 
@@ -52,8 +74,10 @@ const LoginCards: React.FC = () => {
       <Card>
         <CardTitle>Staff Portal</CardTitle>
         <p>Login or sign up to access the staff dashboard.</p>
-        <CardButton to="/login">Login</CardButton>
-        <CardButton to="/signup" style={{ marginLeft: '1rem' }}>Sign Up</CardButton>
+        <ButtonWrapper>
+          <PrimaryButton to="/login">Login</PrimaryButton>
+          <SecondaryButton to="/signup">Sign Up</SecondaryButton>
+        </ButtonWrapper>
       </Card>
       <Card>
         <CardTitle>Patient Portal</CardTitle>

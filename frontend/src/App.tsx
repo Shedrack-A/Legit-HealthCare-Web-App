@@ -42,12 +42,12 @@ function App() {
       <GlobalStyle />
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage toggleTheme={toggleTheme} />} />
+          <Route path="/" element={<HomePage toggleTheme={toggleTheme} theme={theme} />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedRoute />}>
-            <Route element={<ProtectedLayout />}>
+            <Route element={<ProtectedLayout toggleTheme={toggleTheme} theme={theme} />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/register-patient" element={<PatientRegistrationPage />} />
               <Route path="/consultation" element={<ConsultationPage />} />

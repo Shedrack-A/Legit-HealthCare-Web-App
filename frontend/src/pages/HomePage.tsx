@@ -31,12 +31,13 @@ const WelcomeTextLine = styled.span`
 
 interface HomePageProps {
   toggleTheme: () => void;
+  theme: string;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ toggleTheme }) => {
+const HomePage: React.FC<HomePageProps> = ({ toggleTheme, theme }) => {
   return (
     <HomePageContainer>
-      <Header toggleTheme={toggleTheme} />
+      <Header toggleTheme={toggleTheme} theme={theme} />
       <MainContent>
         <WelcomeText>
           <WelcomeTextLine>Welcome to</WelcomeTextLine>
