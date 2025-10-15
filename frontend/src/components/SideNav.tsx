@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaUserPlus, FaNotesMedical, FaVial, FaUserTie, FaFileMedicalAlt, FaUsers, FaBookMedical, FaCogs } from 'react-icons/fa';
+import { Home, UserPlus, Clipboard, Droplet, UserCheck, FileText, Users, BookOpen, Settings } from 'react-feather';
 
 const NavContainer = styled.nav`
   background-color: ${({ theme }) => theme.cardBg};
@@ -52,56 +52,56 @@ const SideNav: React.FC = () => {
       <NavList>
         <NavItem>
           <StyledNavLink to="/dashboard">
-            <IconWrapper><FaTachometerAlt /></IconWrapper>
+            <IconWrapper><Home /></IconWrapper>
             <span>Dashboard</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/register-patient">
-            <IconWrapper><FaUserPlus /></IconWrapper>
+            <IconWrapper><UserPlus /></IconWrapper>
             <span>Register Patient</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/consultation">
-            <IconWrapper><FaNotesMedical /></IconWrapper>
+            <IconWrapper><Clipboard /></IconWrapper>
             <span>Consultation</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/test-results">
-            <IconWrapper><FaVial /></IconWrapper>
+            <IconWrapper><Droplet /></IconWrapper>
             <span>Test Results</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/director-review/search">
-            <IconWrapper><FaUserTie /></IconWrapper>
+            <IconWrapper><UserCheck /></IconWrapper>
             <span>Director's Review</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/patient-report/search">
-            <IconWrapper><FaFileMedicalAlt /></IconWrapper>
+            <IconWrapper><FileText /></IconWrapper>
             <span>Patient Report</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/view-patients">
-            <IconWrapper><FaUsers /></IconWrapper>
+            <IconWrapper><Users /></IconWrapper>
             <span>View Patients</span>
           </StyledNavLink>
         </NavItem>
         <NavItem>
           <StyledNavLink to="/view-records">
-            <IconWrapper><FaBookMedical /></IconWrapper>
+            <IconWrapper><BookOpen /></IconWrapper>
             <span>View Records</span>
           </StyledNavLink>
         </NavItem>
         {/* Admin Section */}
         <NavItem style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #e0e0e0' }}>
           <StyledNavLink to="/control-panel">
-            <IconWrapper><FaCogs /></IconWrapper>
+            <IconWrapper><Settings /></IconWrapper>
             <span>Control Panel</span>
           </StyledNavLink>
         </NavItem>
