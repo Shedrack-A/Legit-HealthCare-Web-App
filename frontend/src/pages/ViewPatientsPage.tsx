@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Edit, Trash2 } from 'react-feather';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -29,6 +30,9 @@ const Td = styled.td`
 `;
 
 const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
@@ -128,8 +132,8 @@ const ViewPatientsPage: React.FC = () => {
               <Td>{patient.gender}</Td>
               <Td>{patient.contact_phone}</Td>
               <Td>
-                <EditButton onClick={() => handleEdit(patient.staff_id)}>Edit</EditButton>
-                <DeleteButton onClick={() => handleDelete(patient.staff_id)}>Delete</DeleteButton>
+                <EditButton onClick={() => handleEdit(patient.staff_id)}><Edit size={16} /><span>Edit</span></EditButton>
+                <DeleteButton onClick={() => handleDelete(patient.staff_id)}><Trash2 size={16} /><span>Delete</span></DeleteButton>
               </Td>
             </tr>
           ))}

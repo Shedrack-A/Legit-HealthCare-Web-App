@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Edit, Trash2 } from 'react-feather';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -53,6 +54,9 @@ const Td = styled.td`
 `;
 
 const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
@@ -185,8 +189,8 @@ const ViewRecordsPage: React.FC = () => {
                 <Td>{record.gender}</Td>
                 <Td>{record.contact_phone}</Td>
                 <Td>
-                  <EditButton onClick={() => handleEdit(record.staff_id)}>Edit</EditButton>
-                  <DeleteButton onClick={() => handleDelete(record.record_id)}>Delete</DeleteButton>
+                  <EditButton onClick={() => handleEdit(record.staff_id)}><Edit size={16} /><span>Edit</span></EditButton>
+                  <DeleteButton onClick={() => handleDelete(record.record_id)}><Trash2 size={16} /><span>Delete</span></DeleteButton>
                 </Td>
               </tr>
             ))}

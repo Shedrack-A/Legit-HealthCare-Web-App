@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { Briefcase, User } from 'react-feather';
 
 const CardsContainer = styled.div`
   display: flex;
@@ -60,19 +61,24 @@ const PrimaryButton = styled(CardButton)`
 `;
 
 const SecondaryButton = styled(CardButton)`
-  background-color: transparent;
-  color: ${({ theme }) => theme.text};
-  border: 1px solid ${({ theme }) => theme.cardBorder};
+  background-color: #A9A9A9;
+  color: white;
+  border: 1px solid #A9A9A9;
 
   &:hover {
-    background-color: ${({ theme }) => theme.background};
+    background-color: #8c8c8c;
   }
+`;
+
+const IconWrapper = styled.div`
+  margin-bottom: 1rem;
 `;
 
 const LoginCards: React.FC = () => {
   return (
     <CardsContainer>
       <Card>
+        <IconWrapper><Briefcase size={40} /></IconWrapper>
         <CardTitle>Staff Portal</CardTitle>
         <p>Login or sign up to access the staff dashboard.</p>
         <ButtonWrapper>
@@ -81,6 +87,7 @@ const LoginCards: React.FC = () => {
         </ButtonWrapper>
       </Card>
       <Card>
+        <IconWrapper><User size={40} /></IconWrapper>
         <CardTitle>Patient Portal</CardTitle>
         <p>Claim your account to access your medical records.</p>
         <ButtonWrapper>
