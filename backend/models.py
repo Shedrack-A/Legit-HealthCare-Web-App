@@ -80,6 +80,17 @@ class TemporaryAccessCode(db.Model):
     def __repr__(self):
         return f'<TemporaryAccessCode {self.code}>'
 
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User')
+    action = db.Column(db.String(100), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    details = db.Column(db.Text)
+
+    def __repr__(self):
+        return f'<AuditLog {self.user.username} - {self.action}>'
+
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     staff_id = db.Column(db.String(50), unique=True, nullable=False)

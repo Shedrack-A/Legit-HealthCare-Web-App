@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app, session
-from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry, Role, Permission, TemporaryAccessCode
+from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry, Role, Permission, TemporaryAccessCode, AuditLog
 from . import db
 import jwt
 from datetime import datetime, timedelta, timezone, date
@@ -840,6 +840,12 @@ def delete_role(current_user, role_id):
     db.session.commit()
     return jsonify({'message': 'Role deleted successfully.'})
 
+# Audit Log Helper
+def log_audit(user, action, details=""):
+    """Helper function to create an audit log entry."""
+    log_entry = AuditLog(user_id=user.id, action=action, details=details)
+    db.session.add(log_entry)
+
 # Temporary Access Code Routes
 import uuid
 
@@ -877,6 +883,8 @@ def generate_temp_code(current_user):
         use_type=use_type
     )
     db.session.add(new_code)
+
+    log_audit(current_user, 'TEMP_CODE_GENERATED', f"Generated code {code_str} for permission '{permission.name}'")
     db.session.commit()
 
     return jsonify({'message': 'Temporary access code generated successfully.', 'code': code_str}), 201
@@ -892,9 +900,13 @@ def activate_temp_code(current_user):
     code = TemporaryAccessCode.query.filter_by(code=code_str, is_active=True).first()
 
     if not code or code.expiration < datetime.utcnow():
+        log_audit(current_user, 'TEMP_CODE_ACTIVATE_FAILURE', f"Attempted to use invalid or expired code '{code_str}'")
+        db.session.commit()
         return jsonify({'message': 'Invalid or expired code.'}), 404
 
     if code.use_type == 'single-use' and code.times_used > 0:
+        log_audit(current_user, 'TEMP_CODE_ACTIVATE_FAILURE', f"Attempted to reuse single-use code '{code_str}'")
+        db.session.commit()
         return jsonify({'message': 'This code has already been used.'}), 403
 
     # Grant permission in session (this is a simple way, a more robust system might use a separate table)
@@ -907,6 +919,7 @@ def activate_temp_code(current_user):
     if code.use_type == 'single-use':
         code.is_active = False
 
+    log_audit(current_user, 'TEMP_CODE_ACTIVATE_SUCCESS', f"Successfully activated code '{code_str}' for permission '{code.permission.name}'")
     db.session.commit()
 
     return jsonify({'message': f"Permission '{code.permission.name}' granted temporarily."})
@@ -918,3 +931,28 @@ def revoke_temp_code(current_user, code_id):
     code.is_active = False
     db.session.commit()
     return jsonify({'message': 'Code revoked successfully.'})
+
+@bp.route('/request-access', methods=['POST'])
+@token_required()
+def request_access(current_user):
+    data = request.get_json()
+    permission_needed = data.get('permission')
+    if not permission_needed:
+        return jsonify({'message': 'Permission is required'}), 400
+
+    log_audit(current_user, 'TEMP_ACCESS_CODE_REQUEST', f"User requested access for permission: '{permission_needed}'")
+    db.session.commit()
+
+    return jsonify({'message': 'Your request for access has been logged for an administrator to review.'}), 200
+
+@bp.route('/audit-logs', methods=['GET'])
+@token_required('manage_roles') # Assuming only admins/role managers can see logs
+def get_audit_logs(current_user):
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+    return jsonify([{
+        'id': log.id,
+        'username': log.user.username,
+        'action': log.action,
+        'timestamp': log.timestamp.isoformat(),
+        'details': log.details,
+    } for log in logs])

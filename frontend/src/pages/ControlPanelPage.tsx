@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaUsersCog, FaUserShield, FaKey } from 'react-icons/fa';
+import { FaUsersCog, FaUserShield, FaKey, FaClipboardList } from 'react-icons/fa';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -69,6 +69,11 @@ const ControlPanelPage: React.FC = () => {
           <CardIcon><FaKey /></CardIcon>
           <CardTitle>Temporary Access Codes</CardTitle>
           <p>Generate and manage temporary, permission-granting codes.</p>
+        </AdminCard>
+        <AdminCard to="/control-panel/audit-log">
+          <CardIcon><FaClipboardList /></CardIcon>
+          <CardTitle>Audit Log</CardTitle>
+          <p>View a log of all significant user actions.</p>
         </AdminCard>
       </AdminDashboard>
     </PageContainer>
