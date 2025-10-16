@@ -29,6 +29,14 @@ const WelcomeTextLine = styled.span`
   display: block;
 `;
 
+const AppDescription = styled.p`
+  text-align: center;
+  max-width: 600px;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+`;
+
 interface HomePageProps {
   toggleTheme: () => void;
   theme: string;
@@ -43,6 +51,10 @@ const HomePage: React.FC<HomePageProps> = ({ toggleTheme, theme }) => {
           <WelcomeTextLine>Welcome to</WelcomeTextLine>
           <WelcomeTextLine>Legit HealthCare Service Ltd</WelcomeTextLine>
         </WelcomeText>
+        <AppDescription>
+          This application is a comprehensive platform for managing patient data, medical screenings, and reports.
+          Staff can manage patient records and workflows, while the patient portal allows users to securely access their medical reports.
+        </AppDescription>
         <LoginCards />
       </MainContent>
       <Footer />

@@ -1,6 +1,6 @@
 export const lightTheme = {
-  main: '#5fd072',
-  accent: '#c1f1c9',
+  main: '#056ded',
+  accent: '#4cc4ff',
   background: '#f1fcf3',
   text: '#000000',
   cardBg: '#ffffff',
@@ -9,8 +9,8 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
-  main: '#5fd072',
-  accent: '#c1f1c9',
+  main: '#056ded',
+  accent: '#4cc4ff',
   background: '#121212',
   text: '#ffffff',
   cardBg: '#1e1e1e',

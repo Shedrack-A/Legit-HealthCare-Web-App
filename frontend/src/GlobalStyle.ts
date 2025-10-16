@@ -8,7 +8,6 @@ export const GlobalStyle = createGlobalStyle`
     font-family: 'Montserrat', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: ${({ theme }) => theme.background};
     color: ${({ theme }) => theme.text};
     transition: all 0.25s linear;
   }
