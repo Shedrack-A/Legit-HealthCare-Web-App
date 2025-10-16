@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { TEST_TYPE_CONFIG } from '../../data/constants';
+import { useGlobalFilter } from '../../contexts/GlobalFilterContext';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -11,31 +12,6 @@ const PageContainer = styled.div`
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
   margin-bottom: 2rem;
-`;
-
-// ... (reusing styled components from ConsultationPage.tsx)
-const SelectorsContainer = styled.div`
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  align-items: center;
-`;
-
-const SelectorGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const SelectorLabel = styled.label`
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-`;
-
-const FormSelect = styled.select`
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-  min-width: 200px;
 `;
 
 const SearchInput = styled.input`
@@ -80,15 +56,6 @@ const PatientName = styled.h3`
   color: ${({ theme }) => theme.main};
 `;
 
-const generateYears = () => {
-  const currentYear = new Date().getFullYear();
-  const years = [];
-  for (let year = currentYear - 5; year <= currentYear + 10; year++) {
-    years.push(year);
-  }
-  return years;
-};
-
 interface PatientSearchResult {
   id: number;
   staff_id: string;
@@ -101,12 +68,9 @@ interface PatientSearchResult {
 const TestResultSearchPage: React.FC = () => {
   const { testType } = useParams<{ testType: string }>();
   const testConfig = testType ? TEST_TYPE_CONFIG[testType] : null;
-
-  const [screeningYear, setScreeningYear] = useState(new Date().getFullYear());
-  const [companySection, setCompanySection] = useState('DCP');
+  const { companySection, screeningYear } = useGlobalFilter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PatientSearchResult[]>([]);
-  const years = generateYears();
 
   useEffect(() => {
     const searchPatients = async () => {
@@ -151,30 +115,6 @@ const TestResultSearchPage: React.FC = () => {
     <PageContainer>
       <PageTitle>{testConfig.name} - Search Patient</PageTitle>
 
-      <SelectorsContainer>
-        <SelectorGroup>
-          <SelectorLabel htmlFor="screening_year">Screening Year</SelectorLabel>
-          <FormSelect
-            id="screening_year"
-            value={screeningYear}
-            onChange={(e) => setScreeningYear(parseInt(e.target.value))}
-          >
-            {years.map(year => <option key={year} value={year}>{year}</option>)}
-          </FormSelect>
-        </SelectorGroup>
-        <SelectorGroup>
-          <SelectorLabel htmlFor="company_section">Company Section</SelectorLabel>
-          <FormSelect
-            id="company_section"
-            value={companySection}
-            onChange={(e) => setCompanySection(e.target.value)}
-          >
-            <option value="DCP">Dangote Cement - DCP</option>
-            <option value="DCT">Dangote Transport - DCT</option>
-          </FormSelect>
-        </SelectorGroup>
-      </SelectorsContainer>
-
       <SearchInput
         type="text"
         placeholder="Search by Staff ID..."
@@ -185,7 +125,7 @@ const TestResultSearchPage: React.FC = () => {
       <ResultsList>
         {results.map((patient) => (
           <ResultItem key={patient.id}>
-            <ResultLink to={`/test-results/${testType}/form/${patient.id}`}>
+            <ResultLink to={`/test-results/${testType}/form/${patient.staff_id}`}>
               <PatientInfo>
                 <div>
                   <PatientName>{patient.first_name} {patient.last_name}</PatientName>

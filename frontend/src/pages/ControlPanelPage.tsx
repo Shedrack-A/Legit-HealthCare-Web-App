@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { Users, UserCheck, Key, Clipboard } from 'react-feather';
+import { Users, UserCheck, Key, Clipboard, Mail } from 'react-feather';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -74,6 +74,11 @@ const ControlPanelPage: React.FC = () => {
           <CardIcon><Clipboard /></CardIcon>
           <CardTitle>Audit Log</CardTitle>
           <p>View a log of all significant user actions.</p>
+        </AdminCard>
+        <AdminCard to="/control-panel/email-config">
+          <CardIcon><Mail /></CardIcon>
+          <CardTitle>Email Configuration</CardTitle>
+          <p>Configure the system's email settings.</p>
         </AdminCard>
       </AdminDashboard>
     </PageContainer>

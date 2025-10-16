@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
-import { Home, UserPlus, Clipboard, Droplet, UserCheck, FileText, Users, BookOpen, Settings } from 'react-feather';
+import { Home, UserPlus, Clipboard, Droplet, UserCheck, FileText, Users, BookOpen, Settings, MessageSquare } from 'react-feather';
 
 const NavContainer = styled.nav`
   background-color: ${({ theme }) => theme.cardBg};
@@ -96,6 +96,12 @@ const SideNav: React.FC = () => {
           <StyledNavLink to="/view-records">
             <IconWrapper><BookOpen /></IconWrapper>
             <span>View Records</span>
+          </StyledNavLink>
+        </NavItem>
+        <NavItem>
+          <StyledNavLink to="/messaging">
+            <IconWrapper><MessageSquare /></IconWrapper>
+            <span>Messaging</span>
           </StyledNavLink>
         </NavItem>
         {/* Admin Section */}

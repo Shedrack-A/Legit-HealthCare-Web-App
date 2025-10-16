@@ -6,3 +6,5 @@ python-dotenv
 Werkzeug
 Flask-Bcrypt
 PyJWT
+pyotp
+qrcode

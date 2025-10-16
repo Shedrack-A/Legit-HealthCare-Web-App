@@ -28,6 +28,13 @@ import RoleManagementPage from './pages/RoleManagementPage';
 import TempAccessCodePage from './pages/TempAccessCodePage';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 import AuditLogPage from './pages/AuditLogPage';
+import EditUserPage from './pages/EditUserPage';
+import ManageAccountPage from './pages/ManageAccountPage';
+import ProfileUpdateForm from './pages/ProfileUpdateForm';
+import PasswordChangeForm from './pages/PasswordChangeForm';
+import Manage2FAPage from './pages/Manage2FAPage';
+import EmailConfigPage from './pages/EmailConfigPage';
+import MessagingPage from './pages/MessagingPage';
 
 const DashboardPage = () => <div><h1>Protected Dashboard</h1></div>;
 
@@ -67,10 +74,18 @@ function App() {
               {/* Control Panel Routes */}
               <Route path="/control-panel" element={<ControlPanelPage />} />
               <Route path="/control-panel/user-management" element={<UserManagementPage />} />
+              <Route path="/control-panel/edit-user/:userId" element={<EditUserPage />} />
               <Route path="/control-panel/role-management" element={<RoleManagementPage />} />
               <Route path="/control-panel/temp-access-codes" element={<TempAccessCodePage />} />
               <Route path="/control-panel/audit-log" element={<AuditLogPage />} />
+              <Route path="/control-panel/email-config" element={<EmailConfigPage />} />
               <Route path="/access-denied" element={<AccessDeniedPage />} />
+              {/* Manage Account Routes */}
+              <Route path="/manage-account" element={<ManageAccountPage />} />
+              <Route path="/manage-account/profile" element={<ProfileUpdateForm />} />
+              <Route path="/manage-account/change-password" element={<PasswordChangeForm />} />
+              <Route path="/manage-account/2fa" element={<Manage2FAPage />} />
+              <Route path="/messaging" element={<MessagingPage />} />
             </Route>
           </Route>
         </Routes>

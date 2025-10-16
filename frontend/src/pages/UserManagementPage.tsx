@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { Edit } from 'react-feather';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -31,6 +33,18 @@ const RoleSelect = styled.select`
   padding: 0.5rem;
 `;
 
+const ActionButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: ${({ theme }) => theme.main};
+
+  &:hover {
+    color: ${({ theme }) => theme.accent};
+  }
+`;
+
 interface User {
   id: number;
   username: string;
@@ -47,6 +61,7 @@ const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +99,10 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
+  const handleEdit = (userId: number) => {
+    navigate(`/control-panel/edit-user/${userId}`);
+  };
+
   if (loading) {
       return <PageContainer><p>Loading...</p></PageContainer>;
   }
@@ -98,6 +117,7 @@ const UserManagementPage: React.FC = () => {
             <Th>Email</Th>
             <Th>Current Roles</Th>
             <Th>Assign New Role</Th>
+            <Th>Actions</Th>
           </tr>
         </thead>
         <tbody>
@@ -113,6 +133,11 @@ const UserManagementPage: React.FC = () => {
                     <option key={role.id} value={role.id}>{role.name}</option>
                   ))}
                 </RoleSelect>
+              </Td>
+              <Td>
+                <ActionButton onClick={() => handleEdit(user.id)} title="Edit User">
+                  <Edit size={18} />
+                </ActionButton>
               </Td>
             </tr>
           ))}

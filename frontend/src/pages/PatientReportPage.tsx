@@ -21,13 +21,11 @@ const PageContainer = styled.div`
   padding: 2rem;
 `;
 
-const DownloadButton = styled.button`
+const ActionButton = styled.button`
   position: fixed;
   bottom: 2rem;
-  right: 2rem;
   padding: 1rem 2rem;
   font-size: 1.2rem;
-  background-color: ${({ theme }) => theme.main};
   color: white;
   border: none;
   border-radius: 8px;
@@ -35,10 +33,21 @@ const DownloadButton = styled.button`
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 `;
 
+const DownloadButton = styled(ActionButton)`
+  right: 2rem;
+  background-color: ${({ theme }) => theme.main};
+`;
+
+const EmailButton = styled(ActionButton)`
+  right: 15rem;
+  background-color: ${({ theme }) => theme.accent};
+`;
+
 const PatientReportPage: React.FC = () => {
   const { staffId } = useParams<{ staffId: string }>();
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -82,6 +91,22 @@ const PatientReportPage: React.FC = () => {
     }
   };
 
+  const handleEmail = async () => {
+    setIsSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/patient-report/email`, { staff_id: staffId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Report has been sent successfully!');
+    } catch (error) {
+      console.error('Failed to email report:', error);
+      alert('There was an error sending the report. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <>
       <ReportContainer id="report-to-download">
@@ -120,6 +145,9 @@ const PatientReportPage: React.FC = () => {
 
       </A4Page>
     </ReportContainer>
+    <EmailButton onClick={handleEmail} disabled={isSending}>
+      {isSending ? 'Sending...' : 'Email Report'}
+    </EmailButton>
     <DownloadButton onClick={handleDownload}>Download as PDF</DownloadButton>
     </>
   );

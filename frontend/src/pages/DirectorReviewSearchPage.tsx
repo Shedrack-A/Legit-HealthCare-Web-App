@@ -74,7 +74,7 @@ const DirectorReviewSearchPage: React.FC = () => {
       <ResultsList>
         {results.map((patient) => (
           <ResultItem key={patient.id}>
-            <ResultLink to={`/director-review/form/${patient.id}`}>
+            <ResultLink to={`/director-review/form/${patient.staff_id}`}>
               <PatientInfo>
                 <div>
                   <PatientName>{patient.first_name} {patient.last_name}</PatientName>

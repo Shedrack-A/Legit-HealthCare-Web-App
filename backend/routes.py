@@ -1,10 +1,16 @@
 from flask import Blueprint, jsonify, request, current_app, session
-from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry, Role, Permission, TemporaryAccessCode, AuditLog
+from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry, Role, Permission, TemporaryAccessCode, AuditLog, SystemConfig, Conversation, Message
 from . import db
 import jwt
 from datetime import datetime, timedelta, timezone, date
 from functools import wraps
 from sqlalchemy import func
+import pyotp
+import qrcode
+import io
+import base64
+import smtplib
+from email.message import EmailMessage
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -964,3 +970,324 @@ def get_audit_logs(current_user):
         'timestamp': log.timestamp.isoformat(),
         'details': log.details,
     } for log in logs])
+
+
+@bp.route('/user/<int:user_id>', methods=['GET'])
+@token_required('manage_users')
+def get_user_details(current_user, user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify({
+        'id': user.id,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'username': user.username,
+        'email': user.email,
+    })
+
+@bp.route('/user/<int:user_id>', methods=['PUT'])
+@token_required('manage_users')
+def update_user_details(current_user, user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+
+    # Update standard fields
+    user.first_name = data.get('first_name', user.first_name)
+    user.last_name = data.get('last_name', user.last_name)
+    user.username = data.get('username', user.username)
+    user.email = data.get('email', user.email)
+
+    # Update password if a new one is provided
+    if 'new_password' in data and data['new_password']:
+        if not User.is_password_strong(data['new_password']):
+            return jsonify({'message': 'New password is not strong enough.'}), 400
+        user.set_password(data['new_password'])
+        log_audit(current_user, 'ADMIN_PASSWORD_CHANGE', f"Admin changed password for user '{user.username}'")
+
+    db.session.commit()
+    log_audit(current_user, 'ADMIN_USER_UPDATE', f"Admin updated details for user '{user.username}'")
+    db.session.commit()
+    return jsonify({'message': 'User updated successfully.'})
+
+
+@bp.route('/patient-report/email', methods=['POST'])
+@token_required()
+def email_patient_report(current_user):
+    data = request.get_json()
+    staff_id = data.get('staff_id')
+
+    if not staff_id:
+        return jsonify({"message": "Staff ID is required"}), 400
+
+    # TODO: In Phase 5, implement the actual email sending logic
+    # For now, we just log the action as a placeholder
+
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
+
+    log_audit(current_user, 'EMAIL_REPORT', f"Report emailed to patient {patient.first_name} {patient.last_name} (Staff ID: {staff_id})")
+    db.session.commit()
+
+    # --- Email Logic ---
+    sender_email_config = SystemConfig.query.filter_by(key='sender_email').first()
+    app_password_config = SystemConfig.query.filter_by(key='app_password').first()
+
+    if not sender_email_config or not app_password_config:
+        return jsonify({'message': 'Email service is not configured.'}), 500
+
+    sender_email = sender_email_config.value
+    app_password = app_password_config.value
+
+    # Get patient and screening details for the email body
+    patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
+    # This assumes the report is for the latest screening year the patient is in.
+    # A more robust implementation might pass the screening_year from the frontend.
+    screening_record = ScreeningBioData.query.filter_by(patient_comprehensive_id=patient.id).order_by(ScreeningBioData.screening_year.desc()).first()
+
+    if not screening_record:
+        return jsonify({'message': 'No screening record found for this patient.'}), 404
+
+    report_year = screening_record.screening_year
+    organisation = screening_record.company_section
+
+    # Create the email
+    msg = EmailMessage()
+    msg['Subject'] = f"MEDICAL REPORT: {report_year} Annual Medical Screening for SUNU Health Enrolees at {organisation} Obajana"
+    msg['From'] = f"Legit HealthCare [{organisation}-OBAJANA] <{sender_email}>"
+    msg['To'] = patient.email_address
+
+    # Dynamic email body
+    email_body = f"""
+    Dear {patient.first_name} - {patient.staff_id},
+
+    Thanks for making yourself available for this year's Annual Medical Screening Exercise.
+
+    Please find attached your Medical Report for the year {report_year}.
+    The hard copy of your result will be given to the {organisation} Medical Team for dispatch to your department.
+
+    Warm Regards
+
+    SIGNED:
+    Dr. Anyanwu Ugochukwu D. FMCPath
+    Consultant in Charge
+    Legit HealthCare Services Ltd.
+
+    <br>
+    For more info and complaints, contact the Consultant in charge (Doctor) on WhatsApp at: https://bit.ly/SUNU-Doctor or Systems Administrator at: https://bit.ly/Admin_lhcsl
+    """
+    msg.set_content(email_body, subtype='html')
+
+    # TODO: Add PDF attachment logic here in a future step.
+    # For now, just sending the text email.
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(sender_email, app_password)
+            smtp.send_message(msg)
+
+        log_audit(current_user, 'EMAIL_REPORT_SUCCESS', f"Report successfully emailed to {patient.email_address} for staff ID {staff_id}")
+        db.session.commit()
+        return jsonify({"message": "Report sent successfully"}), 200
+    except Exception as e:
+        current_app.logger.error(f"Email failed to send: {e}")
+        log_audit(current_user, 'EMAIL_REPORT_FAILURE', f"Failed to email report to {patient.email_address} for staff ID {staff_id}: {e}")
+        db.session.commit()
+        return jsonify({"message": "Failed to send email"}), 500
+
+
+# System Config Routes
+@bp.route('/config/email', methods=['GET'])
+@token_required('manage_roles') # Or a new 'manage_system_config' permission
+def get_email_config(current_user):
+    sender_email = SystemConfig.query.filter_by(key='sender_email').first()
+    return jsonify({
+        'sender_email': sender_email.value if sender_email else ''
+    })
+
+@bp.route('/config/email', methods=['POST'])
+@token_required('manage_roles')
+def set_email_config(current_user):
+    data = request.get_json()
+
+    sender_email = data.get('sender_email')
+    app_password = data.get('app_password')
+
+    if not sender_email or not app_password:
+        return jsonify({'message': 'Sender email and app password are required.'}), 400
+
+    # --- Update or Create Sender Email ---
+    email_config = SystemConfig.query.filter_by(key='sender_email').first()
+    if not email_config:
+        email_config = SystemConfig(key='sender_email', value=sender_email)
+        db.session.add(email_config)
+    else:
+        email_config.value = sender_email
+
+    # --- Update or Create App Password ---
+    password_config = SystemConfig.query.filter_by(key='app_password').first()
+    if not password_config:
+        password_config = SystemConfig(key='app_password', value=app_password)
+        db.session.add(password_config)
+    else:
+        password_config.value = app_password
+
+    db.session.commit()
+    log_audit(current_user, 'CONFIG_UPDATE', 'Updated email configuration.')
+    db.session.commit()
+    return jsonify({'message': 'Email configuration saved successfully.'})
+
+
+# --- Messaging Routes ---
+@bp.route('/conversations', methods=['GET'])
+@token_required()
+def get_conversations(current_user):
+    conversations = current_user.conversations
+    return jsonify([{
+        'id': c.id,
+        'name': c.name or ", ".join([p.username for p in c.participants if p.id != current_user.id]),
+        'is_group': c.is_group,
+        'last_message': c.messages.order_by(Message.timestamp.desc()).first().content if c.messages.first() else None
+    } for c in conversations])
+
+@bp.route('/conversations/<int:conversation_id>', methods=['GET'])
+@token_required()
+def get_messages(current_user, conversation_id):
+    conversation = Conversation.query.get_or_404(conversation_id)
+    if current_user not in conversation.participants:
+        return jsonify({'message': 'Not a participant of this conversation'}), 403
+
+    messages = conversation.messages.order_by(Message.timestamp.asc()).all()
+    return jsonify([{
+        'id': m.id,
+        'sender_id': m.sender_id,
+        'sender_username': m.sender.username,
+        'content': m.content,
+        'timestamp': m.timestamp.isoformat()
+    } for m in messages])
+
+@bp.route('/messages', methods=['POST'])
+@token_required()
+def send_message(current_user):
+    data = request.get_json()
+    conversation_id = data.get('conversation_id')
+    content = data.get('content')
+    recipient_id = data.get('recipient_id') # For starting a new 1-on-1 chat
+
+    if not content:
+        return jsonify({'message': 'Message content is required'}), 400
+
+    if conversation_id:
+        conversation = Conversation.query.get_or_404(conversation_id)
+        if current_user not in conversation.participants:
+            return jsonify({'message': 'Not a participant of this conversation'}), 403
+    elif recipient_id:
+        recipient = User.query.get(recipient_id)
+        if not recipient:
+            return jsonify({'message': 'Recipient not found'}), 404
+
+        # Check if a 1-on-1 conversation already exists
+        conversation = Conversation.query.filter(Conversation.is_group == False) \
+            .filter(Conversation.participants.contains(current_user)) \
+            .filter(Conversation.participants.contains(recipient)).first()
+
+        if not conversation:
+            conversation = Conversation(participants=[current_user, recipient])
+            db.session.add(conversation)
+    else:
+        return jsonify({'message': 'conversation_id or recipient_id is required'}), 400
+
+    new_message = Message(
+        conversation_id=conversation.id,
+        sender_id=current_user.id,
+        content=content
+    )
+    db.session.add(new_message)
+    db.session.commit()
+    return jsonify({'message': 'Message sent successfully.'}), 201
+
+# User Self-Service Routes
+@bp.route('/profile', methods=['PUT'])
+@token_required()
+def update_profile(current_user):
+    data = request.get_json()
+    # Check password for security
+    if not current_user.check_password(data.get('current_password', '')):
+        return jsonify({'message': 'Incorrect password'}), 403
+
+    current_user.first_name = data.get('first_name', current_user.first_name)
+    current_user.last_name = data.get('last_name', current_user.last_name)
+    current_user.username = data.get('username', current_user.username)
+    current_user.email = data.get('email', current_user.email)
+
+    db.session.commit()
+    log_audit(current_user, 'PROFILE_UPDATE', 'User updated their own profile.')
+    db.session.commit()
+    return jsonify({'message': 'Profile updated successfully.'})
+
+@bp.route('/profile/change-password', methods=['POST'])
+@token_required()
+def change_password(current_user):
+    data = request.get_json()
+    if not current_user.check_password(data.get('current_password')):
+        return jsonify({'message': 'Incorrect current password'}), 403
+
+    new_password = data.get('new_password')
+    if not User.is_password_strong(new_password):
+        return jsonify({'message': 'New password is not strong enough.'}), 400
+
+    current_user.set_password(new_password)
+    db.session.commit()
+    log_audit(current_user, 'PASSWORD_CHANGE', 'User changed their own password.')
+    db.session.commit()
+    return jsonify({'message': 'Password updated successfully.'})
+
+# 2FA Routes
+@bp.route('/2fa/status', methods=['GET'])
+@token_required()
+def get_2fa_status(current_user):
+    return jsonify({'enabled': current_user.otp_enabled})
+
+@bp.route('/2fa/enable', methods=['POST'])
+@token_required()
+def enable_2fa(current_user):
+    if current_user.otp_enabled:
+        return jsonify({'message': '2FA is already enabled.'}), 400
+
+    # Generate a new secret
+    current_user.otp_secret = pyotp.random_base32()
+    db.session.commit()
+
+    # Generate QR code
+    totp = pyotp.TOTP(current_user.otp_secret)
+    provisioning_uri = totp.provisioning_uri(name=current_user.email, issuer_name='Legit HealthCare')
+
+    img = qrcode.make(provisioning_uri)
+    buf = io.BytesIO()
+    img.save(buf)
+    buf.seek(0)
+    img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+    return jsonify({'qr_code_url': f'data:image/png;base64,{img_b64}'})
+
+@bp.route('/2fa/verify', methods=['POST'])
+@token_required()
+def verify_2fa(current_user):
+    data = request.get_json()
+    otp = data.get('otp')
+
+    totp = pyotp.TOTP(current_user.otp_secret)
+    if not totp.verify(otp):
+        return jsonify({'message': 'Invalid OTP'}), 400
+
+    current_user.otp_enabled = True
+    db.session.commit()
+    log_audit(current_user, '2FA_ENABLED', 'User enabled 2FA.')
+    db.session.commit()
+    return jsonify({'message': '2FA enabled successfully.'})
+
+@bp.route('/2fa/disable', methods=['POST'])
+@token_required()
+def disable_2fa(current_user):
+    current_user.otp_enabled = False
+    db.session.commit()
+    log_audit(current_user, '2FA_DISABLED', 'User disabled 2FA.')
+    db.session.commit()
+    return jsonify({'message': '2FA disabled successfully.'})

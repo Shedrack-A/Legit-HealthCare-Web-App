@@ -122,7 +122,7 @@ const ConsultationPage: React.FC = () => {
       <ResultsList>
         {results.map((patient) => (
           <ResultItem key={patient.id}>
-            <ResultLink to={`/consultation/form/${patient.id}`}>
+            <ResultLink to={`/consultation/form/${patient.staff_id}`}>
               <PatientInfo>
                 <div>
                   <PatientName>{patient.first_name} {patient.last_name}</PatientName>

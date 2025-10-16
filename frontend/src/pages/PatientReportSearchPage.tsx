@@ -74,7 +74,7 @@ const PatientReportSearchPage: React.FC = () => {
       <ResultsList>
         {results.map((patient) => (
           <ResultItem key={patient.id}>
-            <ResultLink to={`/patient-report/view/${patient.id}`}>
+            <ResultLink to={`/patient-report/view/${patient.staff_id}`}>
               <PatientInfo>
                 <div>
                   <PatientName>{patient.first_name} {patient.last_name}</PatientName>

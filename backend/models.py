@@ -11,7 +11,10 @@ class User(db.Model):
     phone_number = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(60), nullable=False)
-    # Relationships and other fields will be added later
+
+    # 2FA Fields
+    otp_secret = db.Column(db.String(16), nullable=True)
+    otp_enabled = db.Column(db.Boolean, nullable=False, default=False)
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -265,3 +268,37 @@ class ScreeningBioData(db.Model):
 
     def __repr__(self):
         return f'<ScreeningBioData for Patient {self.patient_comprehensive_id} in {self.screening_year}>'
+
+class SystemConfig(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f'<SystemConfig {self.key}>'
+
+# --- In-App Messaging Models ---
+
+conversation_participants = db.Table('conversation_participants',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('conversation_id', db.Integer, db.ForeignKey('conversation.id'), primary_key=True)
+)
+
+class Conversation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100)) # For group chats
+    is_group = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    messages = db.relationship('Message', back_populates='conversation', lazy='dynamic')
+    participants = db.relationship('User', secondary=conversation_participants, backref='conversations')
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    read = db.Column(db.Boolean, default=False)
+
+    conversation = db.relationship('Conversation', back_populates='messages')
+    sender = db.relationship('User', backref='sent_messages')
