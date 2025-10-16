@@ -3,6 +3,7 @@ import { ThemeProvider } from 'styled-components';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { lightTheme, darkTheme } from './theme/theme';
 import { GlobalStyle } from './GlobalStyle';
+import { GlobalFilterProvider } from './contexts/GlobalFilterContext';
 import HomePage from './pages/HomePage';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
@@ -40,9 +41,10 @@ function App() {
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <GlobalStyle />
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage toggleTheme={toggleTheme} theme={theme} />} />
+      <GlobalFilterProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage toggleTheme={toggleTheme} theme={theme} />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/login" element={<LoginPage />} />
 
@@ -72,7 +74,8 @@ function App() {
             </Route>
           </Route>
         </Routes>
-      </Router>
+        </Router>
+      </GlobalFilterProvider>
     </ThemeProvider>
   );
 }

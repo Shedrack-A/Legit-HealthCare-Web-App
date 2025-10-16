@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Sun, Moon } from 'react-feather';
+import { useGlobalFilter, screeningYears } from '../contexts/GlobalFilterContext';
 
 const HeaderContainer = styled.header`
   padding: 1rem 2rem;
@@ -9,6 +10,19 @@ const HeaderContainer = styled.header`
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 1rem;
+`;
+
+const SelectorGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const FormSelect = styled.select`
+  padding: 0.5rem;
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: 4px;
 `;
 
 const ThemeButton = styled.button`
@@ -33,8 +47,27 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
+  const { companySection, setCompanySection, screeningYear, setScreeningYear } = useGlobalFilter();
+
   return (
     <HeaderContainer>
+      <SelectorGroup>
+        <FormSelect
+          value={companySection}
+          onChange={(e) => setCompanySection(e.target.value)}
+        >
+          <option value="DCP">Dangote Cement - DCP</option>
+          <option value="DCT">Dangote Transport - DCT</option>
+        </FormSelect>
+      </SelectorGroup>
+      <SelectorGroup>
+        <FormSelect
+          value={screeningYear}
+          onChange={(e) => setScreeningYear(parseInt(e.target.value))}
+        >
+          {screeningYears.map(year => <option key={year} value={year}>{year}</option>)}
+        </FormSelect>
+      </SelectorGroup>
       <ThemeButton onClick={toggleTheme}>
         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
       </ThemeButton>

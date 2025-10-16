@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useGlobalFilter } from '../contexts/GlobalFilterContext';
 
 // Reusing styled components from other pages for consistency
 const PageContainer = styled.div` padding: 2rem; `;
 const PageTitle = styled.h1` color: ${({ theme }) => theme.main}; margin-bottom: 2rem; `;
-const SelectorsContainer = styled.div` display: flex; gap: 1.5rem; margin-bottom: 2rem; align-items: center; `;
-const SelectorGroup = styled.div` display: flex; flex-direction: column; `;
-const SelectorLabel = styled.label` margin-bottom: 0.5rem; font-weight: bold; `;
-const FormSelect = styled.select` padding: 0.75rem; border: 1px solid ${({ theme }) => theme.cardBorder}; border-radius: 4px; min-width: 200px; `;
 const SearchInput = styled.input` width: 100%; padding: 1rem; font-size: 1.2rem; border: 1px solid ${({ theme }) => theme.cardBorder}; border-radius: 8px; margin-bottom: 2rem; `;
 const ResultsList = styled.ul` list-style: none; padding: 0; `;
 const ResultItem = styled.li` background-color: ${({ theme }) => theme.cardBg}; border: 1px solid ${({ theme }) => theme.cardBorder}; border-radius: 8px; margin-bottom: 1rem; `;
@@ -36,11 +33,9 @@ interface PatientSearchResult {
 }
 
 const PatientReportSearchPage: React.FC = () => {
-  const [screeningYear, setScreeningYear] = useState(new Date().getFullYear());
-  const [companySection, setCompanySection] = useState('DCP');
+  const { companySection, screeningYear } = useGlobalFilter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PatientSearchResult[]>([]);
-  const years = generateYears();
 
   useEffect(() => {
     const searchPatients = async () => {
@@ -68,22 +63,6 @@ const PatientReportSearchPage: React.FC = () => {
   return (
     <PageContainer>
       <PageTitle>Patient Report - Search Patient</PageTitle>
-
-      <SelectorsContainer>
-        <SelectorGroup>
-          <SelectorLabel htmlFor="screening_year">Screening Year</SelectorLabel>
-          <FormSelect id="screening_year" value={screeningYear} onChange={(e) => setScreeningYear(parseInt(e.target.value))}>
-            {years.map(year => <option key={year} value={year}>{year}</option>)}
-          </FormSelect>
-        </SelectorGroup>
-        <SelectorGroup>
-          <SelectorLabel htmlFor="company_section">Company Section</SelectorLabel>
-          <FormSelect id="company_section" value={companySection} onChange={(e) => setCompanySection(e.target.value)}>
-            <option value="DCP">Dangote Cement - DCP</option>
-            <option value="DCT">Dangote Transport - DCT</option>
-          </FormSelect>
-        </SelectorGroup>
-      </SelectorsContainer>
 
       <SearchInput
         type="text"
