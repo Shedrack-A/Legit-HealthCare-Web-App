@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { PrimaryButton } from '../components/common/Button';
 
 const PageContainer = styled.div`
   padding: 2rem;
 `;
 
-const PageTitle = styled.h1`
-  color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
-`;
 
 const Section = styled.div`
   margin-top: 2rem;
@@ -82,16 +79,15 @@ const Manage2FAPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageTitle>2FA Authentication</PageTitle>
       {isEnabled ? (
         <div>
           <p>Two-factor authentication is currently <strong>enabled</strong>.</p>
-          <button onClick={handleDisable}>Disable 2FA</button>
+          <PrimaryButton onClick={handleDisable}>Disable 2FA</PrimaryButton>
         </div>
       ) : (
         <div>
           <p>Two-factor authentication is currently <strong>disabled</strong>.</p>
-          <button onClick={handleEnable}>Enable 2FA</button>
+          <PrimaryButton onClick={handleEnable}>Enable 2FA</PrimaryButton>
 
           {qrCode && (
             <Section>
@@ -100,7 +96,7 @@ const Manage2FAPage: React.FC = () => {
               <img src={qrCode} alt="QR Code" />
               <form onSubmit={handleVerify}>
                 <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter OTP" required />
-                <button type="submit">Verify & Enable</button>
+                <PrimaryButton type="submit">Verify & Enable</PrimaryButton>
               </form>
             </Section>
           )}
