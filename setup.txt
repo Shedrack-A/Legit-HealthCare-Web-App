@@ -35,9 +35,14 @@ You'll need one terminal window for this part.
 
 7.  **Create the Admin User:** This is how you'll get full access to the application.
     ```bash
-    flask create-admin
+    # Replace <password> with a secure password of your choice
+    flask create-admin <password>
     ```
-    The terminal will ask you to **create and confirm a password** for the `admin` account. Make sure to remember it!
+    **Example:**
+    ```bash
+    flask create-admin YourSecurePassword123!
+    ```
+    This command will create the `admin` user with the password you provided. Remember it for login!
 
 ---
 
