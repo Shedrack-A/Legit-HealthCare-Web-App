@@ -48,4 +48,49 @@ def create_app(config_class='backend.config.Config'):
         db.session.commit()
         print("Permissions registration complete.")
 
+    @app.cli.command("create-admin")
+    def create_admin():
+        """Creates the admin user and assigns the admin role."""
+        from .models import User, Role, db
+        import getpass
+
+        username = 'admin'
+        if User.query.filter_by(username=username).first():
+            print(f"User '{username}' already exists.")
+            return
+
+        password = getpass.getpass('Enter password for admin account: ')
+        confirm_password = getpass.getpass('Confirm password: ')
+
+        if password != confirm_password:
+            print("Passwords do not match.")
+            return
+
+        # Create the admin user
+        admin_user = User(
+            username=username,
+            first_name='Admin',
+            last_name='User',
+            email='admin@system.com'
+        )
+        admin_user.set_password(password)
+        db.session.add(admin_user)
+
+        # Find or create the admin role
+        admin_role = Role.query.filter_by(name='admin').first()
+        if not admin_role:
+            admin_role = Role(name='admin')
+            db.session.add(admin_role)
+            print("Role 'admin' created.")
+
+        # Assign all permissions to the admin role
+        all_permissions = Permission.query.all()
+        admin_role.permissions.extend(all_permissions)
+
+        # Assign the admin role to the admin user
+        admin_user.roles.append(admin_role)
+
+        db.session.commit()
+        print(f"User '{username}' created and assigned the 'admin' role with all permissions.")
+
     return app
