@@ -1,0 +1,101 @@
+### Application Setup and Run Instructions
+
+This guide provides step-by-step instructions to set up and run the Legit HealthCare Services application locally.
+
+---
+
+### **1. Prerequisites**
+
+Before you begin, ensure you have the following installed on your system:
+*   **Python** (version 3.8 or higher) and `pip`
+*   **Node.js** (version 16 or higher) and `npm`
+
+---
+
+### **2. Backend Setup**
+
+First, set up the Python Flask backend server.
+
+1.  **Create and Activate a Virtual Environment:**
+    Open your terminal, navigate to the `backend` directory, and run the following commands:
+    ```bash
+    cd backend
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\\Scripts\\activate`
+    ```
+
+2.  **Install Dependencies:**
+    Install all required Python packages using pip:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Initialize and Upgrade the Database:**
+    The application uses Flask-Migrate to manage the database schema. Run the following commands from the **project root directory** (not the `backend` directory) to initialize the database and apply migrations:
+    ```bash
+    export FLASK_APP=backend/app.py
+    flask db upgrade --directory backend/migrations
+    ```
+    This will create an `instance/app.db` SQLite database file.
+
+4.  **Register System Permissions:**
+    Populate the database with the necessary user permissions by running this custom Flask command:
+    ```bash
+    flask register-permissions
+    ```
+
+---
+
+### **3. Admin Account Creation**
+
+To create the initial admin user, you need to run a script that prompts for a password.
+
+1.  **Run the Admin Creation Script:**
+    Execute the following command from the **project root directory**. It will create an `admin` user and assign them the `admin` role.
+    ```bash
+    flask create-admin
+    ```
+
+2.  **Set the Admin Password:**
+    You will be prompted to enter and confirm a password for the `admin` account. Choose a secure password.
+
+---
+
+### **4. Frontend Setup**
+
+Next, set up the React frontend application.
+
+1.  **Navigate to the Frontend Directory:**
+    Open a **new terminal window** and navigate to the `frontend` directory:
+    ```bash
+    cd frontend
+    ```
+
+2.  **Install Dependencies:**
+    Install all required Node.js packages using npm:
+    ```bash
+    npm install
+    ```
+
+---
+
+### **5. Running the Application**
+
+Now you can run both the backend and frontend servers.
+
+1.  **Start the Backend Server:**
+    In the terminal where you set up the backend (with the virtual environment activated), run the following command from the **project root**:
+    ```bash
+    export FLASK_APP=backend/app.py
+    flask run
+    ```
+    The backend server will start, typically on `http://127.0.0.1:5000`.
+
+2.  **Start the Frontend Server:**
+    In the second terminal window (for the frontend), run the following command from the `frontend` directory:
+    ```bash
+    npm start
+    ```
+    The frontend development server will start, and a new browser tab should open automatically at `http://localhost:3000`.
+
+The application is now running! You can log in using the `admin` username and the password you created.
