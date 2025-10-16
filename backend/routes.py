@@ -47,14 +47,22 @@ def register():
 @bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    current_app.logger.info(f"Login attempt for user: {data.get('username')}")
     if not data or not data.get('username') or not data.get('password'):
+        current_app.logger.warning("Login failed: No username or password provided.")
         return jsonify({'message': 'Could not verify'}), 401
 
     user = User.query.filter_by(username=data.get('username')).first()
 
-    if not user or not user.check_password(data.get('password')):
+    if not user:
+        current_app.logger.warning(f"Login failed: User '{data.get('username')}' not found.")
         return jsonify({'message': 'Could not verify'}), 401
 
+    if not user.check_password(data.get('password')):
+        current_app.logger.warning(f"Login failed: Incorrect password for user '{data.get('username')}'.")
+        return jsonify({'message': 'Could not verify'}), 401
+
+    current_app.logger.info(f"Login successful for user: {user.username}")
     token = jwt.encode({
         'user_id': user.id,
         'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
