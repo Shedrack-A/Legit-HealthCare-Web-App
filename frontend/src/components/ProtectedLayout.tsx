@@ -31,7 +31,7 @@ const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ toggleTheme, theme })
   return (
     <AppLayout>
       {showNav && <SideNav />}
-      <MainWrapper style={{ paddingLeft: showNav ? '240px' : '0' }}>
+      <MainWrapper style={{ marginLeft: showNav ? '240px' : '0' }}>
         <Header toggleTheme={toggleTheme} theme={theme} />
         <ContentContainer>
           <Outlet />

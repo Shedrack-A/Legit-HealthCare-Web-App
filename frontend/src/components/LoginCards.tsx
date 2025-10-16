@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 import { Briefcase, User } from 'react-feather';
+import { PrimaryLinkButton, SecondaryLinkButton } from './common/Button';
 
 const CardsContainer = styled.div`
   display: flex;
@@ -38,37 +38,6 @@ const ButtonWrapper = styled.div`
   margin-top: 1.5rem;
 `;
 
-const CardButton = styled(Link)`
-  display: block;
-  width: 90%; /* Use a percentage to stay within the card */
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  text-decoration: none;
-  transition: background-color 0.2s, color 0.2s;
-  text-align: center;
-`;
-
-const PrimaryButton = styled(CardButton)`
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  border: 1px solid ${({ theme }) => theme.main};
-
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-`;
-
-const SecondaryButton = styled(CardButton)`
-  background-color: #A9A9A9;
-  color: white;
-  border: 1px solid #A9A9A9;
-
-  &:hover {
-    background-color: #8c8c8c;
-  }
-`;
 
 const IconWrapper = styled.div`
   margin-bottom: 1rem;
@@ -82,8 +51,8 @@ const LoginCards: React.FC = () => {
         <CardTitle>Staff Portal</CardTitle>
         <p>Login or sign up to access the staff dashboard.</p>
         <ButtonWrapper>
-          <PrimaryButton to="/login">Login</PrimaryButton>
-          <SecondaryButton to="/signup">Sign Up</SecondaryButton>
+          <PrimaryLinkButton to="/login">Login</PrimaryLinkButton>
+          <SecondaryLinkButton to="/signup">Sign Up</SecondaryLinkButton>
         </ButtonWrapper>
       </Card>
       <Card>
@@ -91,7 +60,7 @@ const LoginCards: React.FC = () => {
         <CardTitle>Patient Portal</CardTitle>
         <p>Claim your account to access your medical records.</p>
         <ButtonWrapper>
-          <PrimaryButton to="/claim-account">Claim Account</PrimaryButton>
+          <PrimaryLinkButton to="/claim-account">Claim Account</PrimaryLinkButton>
         </ButtonWrapper>
       </Card>
     </CardsContainer>

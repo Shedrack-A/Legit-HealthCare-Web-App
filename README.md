@@ -57,8 +57,17 @@ This is the official web application for **Legit HealthCare Services Ltd**, desi
     pip install -r requirements.txt
 
     # Set up the database
-    export FLASK_APP=app.py
+    export FLASK_APP=backend/app.py
     flask db upgrade
+
+    # Create the admin user (run from the project root)
+    # Replace <password> with a secure password
+    flask create-admin <password>
+    ```
+
+    **Example:**
+    ```bash
+    flask create-admin MySecurePassword123!
     ```
 
 3.  **Frontend Setup:**

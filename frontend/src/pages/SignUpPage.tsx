@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { PrimaryButton } from '../components/common/Button';
 
 const SignUpContainer = styled.div`
   display: flex;
@@ -41,21 +42,6 @@ const FormInput = styled.input`
   box-sizing: border-box;
 `;
 
-const FormButton = styled.button`
-  width: 100%;
-  padding: 0.75rem;
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-`;
 
 const SignUpPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -125,7 +111,7 @@ const SignUpPage: React.FC = () => {
           <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
           <FormInput type="password" name="confirm_password" id="confirm_password" onChange={handleChange} required />
         </FormGroup>
-        <FormButton type="submit">Sign Up</FormButton>
+        <PrimaryButton type="submit">Sign Up</PrimaryButton>
       </SignUpForm>
     </SignUpContainer>
   );

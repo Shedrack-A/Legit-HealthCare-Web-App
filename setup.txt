@@ -1,0 +1,82 @@
+### **Part 1: Set Up the Backend Server** ⚙️
+
+You'll need one terminal window for this part.
+
+1.  **Go to the Backend Folder:**
+    ```bash
+    cd backend
+    ```
+
+2.  **Create a Private Workspace:** This keeps the project's tools separate from your computer's.
+    ```bash
+    python -m venv venv
+    ```
+
+3.  **Activate the Workspace:**
+    *   On Mac/Linux: `source venv/bin/activate`
+    *   On Windows: `venv\\Scripts\\activate`
+    (You should see `(venv)` at the start of your terminal prompt).
+
+4.  **Install the Backend Tools:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+5.  **Go Back to the Main Project Folder:**
+    ```bash
+    cd ..
+    ```
+
+6.  **Create the Database:** This sets up the database where all the information will be stored.
+    ```bash
+    export FLASK_APP=backend/app.py
+    flask db upgrade --directory backend/migrations
+    ```
+
+7.  **Create the Admin User:** This is how you'll get full access to the application.
+    ```bash
+    # Replace <password> with a secure password of your choice
+    flask create-admin <password>
+    ```
+    **Example:**
+    ```bash
+    flask create-admin YourSecurePassword123!
+    ```
+    This command will create the `admin` user with the password you provided. Remember it for login!
+
+---
+
+### **Part 2: Set Up the Frontend Interface** 🖥️
+
+For this, please **open a second, new terminal window**.
+
+1.  **Go to the Frontend Folder:**
+    ```bash
+    cd frontend
+    ```
+
+2.  **Install the Frontend Tools:**
+    ```bash
+    npm install
+    ```
+
+---
+
+### **Part 3: Run the Application!** 🎉
+
+Now you'll start both servers.
+
+1.  **Start the Backend:** In your **first terminal** (the one with `(venv)`), run:
+    ```bash
+    export FLASK_APP=backend/app.py
+    flask run
+    ```
+    Leave this terminal running.
+
+2.  **Start the Frontend:** In your **second terminal**, run:
+    ```bash
+    npm start
+    ```
+    This should automatically open a new tab in your web browser to `http://localhost:3000`.
+
+You're all set! You can now go to the web page and log in with the username `admin` and the password you created.
