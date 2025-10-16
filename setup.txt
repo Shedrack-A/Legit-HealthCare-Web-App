@@ -1,101 +1,77 @@
-### Application Setup and Run Instructions
+### **Part 1: Set Up the Backend Server** ⚙️
 
-This guide provides step-by-step instructions to set up and run the Legit HealthCare Services application locally.
+You'll need one terminal window for this part.
 
----
-
-### **1. Prerequisites**
-
-Before you begin, ensure you have the following installed on your system:
-*   **Python** (version 3.8 or higher) and `pip`
-*   **Node.js** (version 16 or higher) and `npm`
-
----
-
-### **2. Backend Setup**
-
-First, set up the Python Flask backend server.
-
-1.  **Create and Activate a Virtual Environment:**
-    Open your terminal, navigate to the `backend` directory, and run the following commands:
+1.  **Go to the Backend Folder:**
     ```bash
     cd backend
-    python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\\Scripts\\activate`
     ```
 
-2.  **Install Dependencies:**
-    Install all required Python packages using pip:
+2.  **Create a Private Workspace:** This keeps the project's tools separate from your computer's.
+    ```bash
+    python -m venv venv
+    ```
+
+3.  **Activate the Workspace:**
+    *   On Mac/Linux: `source venv/bin/activate`
+    *   On Windows: `venv\\Scripts\\activate`
+    (You should see `(venv)` at the start of your terminal prompt).
+
+4.  **Install the Backend Tools:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Initialize and Upgrade the Database:**
-    The application uses Flask-Migrate to manage the database schema. Run the following commands from the **project root directory** (not the `backend` directory) to initialize the database and apply migrations:
+5.  **Go Back to the Main Project Folder:**
+    ```bash
+    cd ..
+    ```
+
+6.  **Create the Database:** This sets up the database where all the information will be stored.
     ```bash
     export FLASK_APP=backend/app.py
     flask db upgrade --directory backend/migrations
     ```
-    This will create an `instance/app.db` SQLite database file.
 
-4.  **Register System Permissions:**
-    Populate the database with the necessary user permissions by running this custom Flask command:
-    ```bash
-    flask register-permissions
-    ```
-
----
-
-### **3. Admin Account Creation**
-
-To create the initial admin user, you need to run a script that prompts for a password.
-
-1.  **Run the Admin Creation Script:**
-    Execute the following command from the **project root directory**. It will create an `admin` user and assign them the `admin` role.
+7.  **Create the Admin User:** This is how you'll get full access to the application.
     ```bash
     flask create-admin
     ```
-
-2.  **Set the Admin Password:**
-    You will be prompted to enter and confirm a password for the `admin` account. Choose a secure password.
+    The terminal will ask you to **create and confirm a password** for the `admin` account. Make sure to remember it!
 
 ---
 
-### **4. Frontend Setup**
+### **Part 2: Set Up the Frontend Interface** 🖥️
 
-Next, set up the React frontend application.
+For this, please **open a second, new terminal window**.
 
-1.  **Navigate to the Frontend Directory:**
-    Open a **new terminal window** and navigate to the `frontend` directory:
+1.  **Go to the Frontend Folder:**
     ```bash
     cd frontend
     ```
 
-2.  **Install Dependencies:**
-    Install all required Node.js packages using npm:
+2.  **Install the Frontend Tools:**
     ```bash
     npm install
     ```
 
 ---
 
-### **5. Running the Application**
+### **Part 3: Run the Application!** 🎉
 
-Now you can run both the backend and frontend servers.
+Now you'll start both servers.
 
-1.  **Start the Backend Server:**
-    In the terminal where you set up the backend (with the virtual environment activated), run the following command from the **project root**:
+1.  **Start the Backend:** In your **first terminal** (the one with `(venv)`), run:
     ```bash
     export FLASK_APP=backend/app.py
     flask run
     ```
-    The backend server will start, typically on `http://127.0.0.1:5000`.
+    Leave this terminal running.
 
-2.  **Start the Frontend Server:**
-    In the second terminal window (for the frontend), run the following command from the `frontend` directory:
+2.  **Start the Frontend:** In your **second terminal**, run:
     ```bash
     npm start
     ```
-    The frontend development server will start, and a new browser tab should open automatically at `http://localhost:3000`.
+    This should automatically open a new tab in your web browser to `http://localhost:3000`.
 
-The application is now running! You can log in using the `admin` username and the password you created.
+You're all set! You can now go to the web page and log in with the username `admin` and the password you created.
