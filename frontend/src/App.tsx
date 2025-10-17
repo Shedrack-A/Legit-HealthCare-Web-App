@@ -41,6 +41,7 @@ import DashboardPage from './pages/DashboardPage';
 import BrandingPage from './pages/BrandingPage';
 import PatientDataUploadPage from './pages/PatientDataUploadPage';
 import ClaimAccountPage from './pages/ClaimAccountPage';
+import MyReportPage from './pages/MyReportPage';
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -95,6 +96,7 @@ function App() {
                     <Route path="/manage-account/change-password" element={<PasswordChangeForm />} />
                     <Route path="/manage-account/2fa" element={<Manage2FAPage />} />
                     <Route path="/messaging" element={<MessagingPage />} />
+                    <Route path="/my-report" element={<MyReportPage />} />
                   </Route>
                 </Route>
               </Routes>

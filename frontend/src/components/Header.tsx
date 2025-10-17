@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { Sun, Moon, ArrowLeft, Bell, User, LogOut, Settings } from 'react-feather';
+import { Sun, Moon, ArrowLeft, Bell, User, LogOut, Settings, FileText } from 'react-feather';
 import { useGlobalFilter, screeningYears } from '../contexts/GlobalFilterContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
@@ -238,6 +238,10 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
           </ProfileButton>
           {dropdownOpen && (
             <DropdownMenu>
+              <DropdownItem to="/my-report">
+                <FileText size={16} />
+                <span>My Report</span>
+              </DropdownItem>
               <DropdownItem to="/manage-account">
                 <Settings size={16} />
                 <span>Manage Account</span>

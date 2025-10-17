@@ -227,6 +227,68 @@ def get_patient_summary(current_user, staff_id):
 
     return jsonify(summary)
 
+@bp.route('/me/report-summary', methods=['GET'])
+@token_required
+def get_my_report_summary(current_user):
+    """
+    Fetches the comprehensive report summary for the currently logged-in user,
+    if they are linked to a patient profile.
+    """
+    patient = current_user.patient
+    if not patient:
+        return jsonify({'message': 'No patient profile linked to this user account.'}), 404
+
+    # This logic is duplicated from get_patient_summary.
+    # In a larger application, this could be refactored into a helper function.
+    screening_record = ScreeningBioData.query.filter_by(
+        patient_comprehensive_id=patient.id
+    ).order_by(ScreeningBioData.screening_year.desc()).first()
+
+    summary = {
+        'patient_id': patient.id,
+        'staff_id': patient.staff_id,
+        'first_name': patient.first_name,
+        'middle_name': patient.middle_name,
+        'last_name': patient.last_name,
+        'department': patient.department,
+        'gender': patient.gender,
+        'date_of_birth': patient.date_of_birth.isoformat(),
+        'age': (date.today().year - patient.date_of_birth.year),
+        'contact_phone': patient.contact_phone,
+        'email_address': patient.email_address,
+        'race': patient.race,
+        'nationality': patient.nationality,
+        'date_registered': screening_record.date_registered.isoformat() if screening_record else None,
+        'patient_id_for_year': screening_record.patient_id_for_year if screening_record else None,
+    }
+
+    def model_to_dict(model_instance, exclude=None):
+        if not model_instance:
+            return {}
+        if exclude is None:
+            exclude = []
+
+        result = {}
+        for c in model_instance.__table__.columns:
+            if c.name not in exclude:
+                value = getattr(model_instance, c.name)
+                if isinstance(value, (datetime, date)):
+                    result[c.name] = value.isoformat()
+                else:
+                    result[c.name] = value
+        return result
+
+    summary.update(model_to_dict(patient.consultation, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.full_blood_count, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.kidney_function_test, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.lipid_profile, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.liver_function_test, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.ecg, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.spirometry, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.audiometry, exclude=['id', 'patient_id']))
+
+    return jsonify(summary)
+
 @bp.route('/save-director-review/<string:staff_id>', methods=['POST'])
 @token_required('perform_director_review')
 def save_director_review(current_user, staff_id):
