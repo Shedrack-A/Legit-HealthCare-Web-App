@@ -170,6 +170,9 @@ class Consultation(db.Model):
     comment_three = db.Column(db.Text)
     comment_four = db.Column(db.Text)
 
+    # Timestamp for the first director review
+    director_review_timestamp = db.Column(db.DateTime, nullable=True)
+
     def __repr__(self):
         return f'<Consultation for Patient {self.patient_id}>'
 
@@ -317,6 +320,9 @@ class Branding(db.Model):
     logo_home = db.Column(db.String(255), nullable=True)
     report_header = db.Column(db.String(255), nullable=True)
     report_signature = db.Column(db.String(255), nullable=True)
+    report_footer = db.Column(db.String(255), nullable=True)
+    doctor_name = db.Column(db.String(100), nullable=True, default='Dr. Anyanwu Ugochukwu D. FMCPath')
+    doctor_title = db.Column(db.String(100), nullable=True, default='Consultant in Charge')
 
     def __repr__(self):
         return f'<Branding {self.clinic_name}>'

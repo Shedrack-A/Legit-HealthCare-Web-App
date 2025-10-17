@@ -71,12 +71,16 @@ const BrandingPage: React.FC = () => {
     const [logoHome, setLogoHome] = useState<File | null>(null);
     const [reportHeader, setReportHeader] = useState<File | null>(null);
     const [reportSignature, setReportSignature] = useState<File | null>(null);
+    const [reportFooter, setReportFooter] = useState<File | null>(null);
+    const [doctorName, setDoctorName] = useState('');
+    const [doctorTitle, setDoctorTitle] = useState('');
     const [previews, setPreviews] = useState({
         logo_light: '',
         logo_dark: '',
         logo_home: '',
         report_header: '',
         report_signature: '',
+        report_footer: '',
     });
     const [loading, setLoading] = useState(true);
 
@@ -91,7 +95,10 @@ const BrandingPage: React.FC = () => {
                     logo_home: data.logo_home ? `/api/uploads/${data.logo_home}` : '',
                     report_header: data.report_header ? `/api/uploads/${data.report_header}` : '',
                     report_signature: data.report_signature ? `/api/uploads/${data.report_signature}` : '',
+                    report_footer: data.report_footer ? `/api/uploads/${data.report_footer}` : '',
                 });
+                setDoctorName(data.doctor_name || '');
+                setDoctorTitle(data.doctor_title || '');
             } catch (error) {
                 console.error('Failed to fetch branding settings:', error);
             } finally {
@@ -105,11 +112,14 @@ const BrandingPage: React.FC = () => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('clinic_name', clinicName);
+        formData.append('doctor_name', doctorName);
+        formData.append('doctor_title', doctorTitle);
         if (logoLight) formData.append('logo_light', logoLight);
         if (logoDark) formData.append('logo_dark', logoDark);
         if (logoHome) formData.append('logo_home', logoHome);
         if (reportHeader) formData.append('report_header', reportHeader);
         if (reportSignature) formData.append('report_signature', reportSignature);
+        if (reportFooter) formData.append('report_footer', reportFooter);
 
         try {
             const token = localStorage.getItem('token');
@@ -151,6 +161,26 @@ const BrandingPage: React.FC = () => {
                         type="text"
                         value={clinicName}
                         onChange={(e) => setClinicName(e.target.value)}
+                    />
+                </FormGroup>
+
+                <FormGroup>
+                    <Label htmlFor="doctorName">Doctor's Name</Label>
+                    <Input
+                        id="doctorName"
+                        type="text"
+                        value={doctorName}
+                        onChange={(e) => setDoctorName(e.target.value)}
+                    />
+                </FormGroup>
+
+                <FormGroup>
+                    <Label htmlFor="doctorTitle">Doctor's Title</Label>
+                    <Input
+                        id="doctorTitle"
+                        type="text"
+                        value={doctorTitle}
+                        onChange={(e) => setDoctorTitle(e.target.value)}
                     />
                 </FormGroup>
 
@@ -207,6 +237,17 @@ const BrandingPage: React.FC = () => {
                         onChange={(e) => handleFileChange(e, setReportSignature, 'report_signature')}
                     />
                     {previews.report_signature && <PreviewImage src={previews.report_signature} alt="Report signature preview" />}
+                </FormGroup>
+
+                <FormGroup>
+                    <Label htmlFor="reportFooter">Report Footer Image</Label>
+                    <FileInput
+                        id="reportFooter"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, setReportFooter, 'report_footer')}
+                    />
+                    {previews.report_footer && <PreviewImage src={previews.report_footer} alt="Report footer preview" />}
                 </FormGroup>
 
                 <Button type="submit">Save Changes</Button>

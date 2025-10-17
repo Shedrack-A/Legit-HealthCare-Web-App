@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import {
-  ReportContainer,
-  A4Page,
-  ReportHeader,
-  ReportTitle,
-  ReportSection,
-  SectionTitle,
-  DataGrid,
-  DataItem,
-  DataLabel,
-  DataValue,
-} from '../theme/ReportStyles';
+import AnnualMedicalReport from '../components/reports/AnnualMedicalReport';
+import { AppContext } from '../contexts/AppContext';
+import { GlobalFilterContext } from '../contexts/GlobalFilterContext';
 
 const PageContainer = styled.div`
   padding: 2rem;
+  background-color: #f0f2f5; // A neutral background for the page
+`;
+
+const Controls = styled.div`
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  gap: 1rem;
+  z-index: 1000;
 `;
 
 const ActionButton = styled.button`
-  position: fixed;
-  bottom: 2rem;
   padding: 1rem 2rem;
   font-size: 1.2rem;
   color: white;
@@ -31,63 +30,116 @@ const ActionButton = styled.button`
   border-radius: 8px;
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.2s, transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
 `;
 
 const DownloadButton = styled(ActionButton)`
-  right: 2rem;
   background-color: ${({ theme }) => theme.main};
+   &:hover {
+    background-color: ${({ theme }) => theme.accent};
+  }
 `;
 
 const EmailButton = styled(ActionButton)`
-  right: 15rem;
-  background-color: ${({ theme }) => theme.accent};
+  background-color: #34A853; // Google Green
+   &:hover {
+    background-color: #4285F4; // Google Blue
+  }
 `;
 
 const PatientReportPage: React.FC = () => {
   const { staffId } = useParams<{ staffId: string }>();
+  const { screeningYear, companySection } = useContext(GlobalFilterContext);
+  const { showFlashMessage, setIsLoading } = useContext(AppContext);
+
   const [summary, setSummary] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [branding, setBranding] = useState<any>(null);
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    const fetchSummary = async () => {
+    const fetchAllData = async () => {
       if (!staffId) return;
-      setLoading(true);
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient-summary/${staffId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSummary(response.data);
+        const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
+
+        // Fetch patient summary and branding data in parallel
+        const [summaryRes, brandingRes] = await Promise.all([
+          axios.get(`/api/patient-summary/${staffId}`, authHeaders),
+          axios.get('/api/branding', authHeaders)
+        ]);
+
+        setSummary(summaryRes.data);
+        setBranding(brandingRes.data);
+
       } catch (error) {
-        console.error('Failed to fetch patient summary:', error);
+        console.error('Failed to fetch report data:', error);
+        showFlashMessage('error', 'Could not load report data.');
         setSummary(null);
+        setBranding(null);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchSummary();
-  }, [staffId]);
+    fetchAllData();
+  }, [staffId, setIsLoading, showFlashMessage]);
 
-  if (loading) {
-    return <PageContainer><p>Loading patient report...</p></PageContainer>;
-  }
+  const handleDownload = async () => {
+    const page1 = document.getElementById('report-page-1');
+    const page2 = document.getElementById('report-page-2');
 
-  if (!summary) {
-    return <PageContainer><p>Could not load patient report.</p></PageContainer>;
-  }
+    if (page1 && page2) {
+        setIsLoading(true);
+        try {
+            const canvas1 = await html2canvas(page1, { scale: 2, useCORS: true });
+            const canvas2 = await html2canvas(page2, { scale: 2, useCORS: true });
 
-  const handleDownload = () => {
-    const reportElement = document.getElementById('report-to-download');
-    if (reportElement) {
-      html2canvas(reportElement, { scale: 2 }).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`patient-report-${summary.staff_id}.pdf`);
-      });
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const addImageToPdf = (canvas: HTMLCanvasElement, pdfInstance: jsPDF) => {
+                const imgData = canvas.toDataURL('image/png');
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                const imgWidth = pdfWidth;
+                const imgHeight = imgWidth / ratio;
+
+                // If the content is taller than the page, it will be scaled down.
+                // This logic assumes each captured canvas fits on one A4 page.
+                if (imgHeight > pdfHeight) {
+                    console.warn("Content is taller than page, scaling might occur.");
+                }
+
+                pdfInstance.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            };
+
+            // Add first page
+            addImageToPdf(canvas1, pdf);
+
+            // Add second page
+            pdf.addPage();
+            addImageToPdf(canvas2, pdf);
+
+            pdf.save(`patient-report-${summary.staff_id}.pdf`);
+
+        } catch (err) {
+            console.error("PDF generation failed:", err);
+            showFlashMessage('error', 'PDF generation failed.');
+        } finally {
+            setIsLoading(false);
+        }
     }
   };
 
@@ -98,58 +150,36 @@ const PatientReportPage: React.FC = () => {
       await axios.post(`/api/patient-report/email`, { staff_id: staffId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Report has been sent successfully!');
+      showFlashMessage('success', 'Report has been sent successfully!');
     } catch (error) {
       console.error('Failed to email report:', error);
-      alert('There was an error sending the report. Please try again.');
+      showFlashMessage('error', 'There was an error sending the report.');
     } finally {
       setIsSending(false);
     }
   };
 
+  if (!summary || !branding) {
+    return null; // Loading is handled by global context
+  }
+
   return (
-    <>
-      <ReportContainer id="report-to-download">
-        <A4Page>
-          <ReportHeader>
-          <ReportTitle>Annual Medical Screening Report</ReportTitle>
-          <p>Legit HealthCare Services Ltd</p>
-        </ReportHeader>
-
-        <ReportSection>
-          <SectionTitle>Bio-Data</SectionTitle>
-          <DataGrid>
-            <DataItem><DataLabel>First Name:</DataLabel><DataValue>{summary.first_name}</DataValue></DataItem>
-            <DataItem><DataLabel>Last Name:</DataLabel><DataValue>{summary.last_name}</DataValue></DataItem>
-            <DataItem><DataLabel>Staff ID:</DataLabel><DataValue>{summary.staff_id}</DataValue></DataItem>
-            <DataItem><DataLabel>Age:</DataLabel><DataValue>{summary.age}</DataValue></DataItem>
-            <DataItem><DataLabel>Department:</DataLabel><DataValue>{summary.department}</DataValue></DataItem>
-            <DataItem><DataLabel>Gender:</DataLabel><DataValue>{summary.gender}</DataValue></DataItem>
-          </DataGrid>
-        </ReportSection>
-
-        <ReportSection>
-          <SectionTitle>Consultation Summary</SectionTitle>
-          <DataGrid>
-            <DataItem><DataLabel>Blood Pressure:</DataLabel><DataValue>{summary.bp}</DataValue></DataItem>
-            <DataItem><DataLabel>Pulse:</DataLabel><DataValue>{summary.pulse}</DataValue></DataItem>
-            <DataItem><DataLabel>Hypertension:</DataLabel><DataValue>{summary.hypertension}</DataValue></DataItem>
-            <DataItem><DataLabel>Diabetes:</DataLabel><DataValue>{summary.diabetes_mellitus}</DataValue></DataItem>
-          </DataGrid>
-        </ReportSection>
-
-        <ReportSection>
-            <SectionTitle>Director's Comments</SectionTitle>
-            <p>{summary.comment_one}</p>
-        </ReportSection>
-
-      </A4Page>
-    </ReportContainer>
-    <EmailButton onClick={handleEmail} disabled={isSending}>
-      {isSending ? 'Sending...' : 'Email Report'}
-    </EmailButton>
-    <DownloadButton onClick={handleDownload}>Download as PDF</DownloadButton>
-    </>
+    <PageContainer>
+      <AnnualMedicalReport
+        patientData={summary}
+        branding={branding}
+        screeningYear={screeningYear}
+        companySection={companySection}
+      />
+      <Controls>
+        <EmailButton onClick={handleEmail} disabled={isSending}>
+          {isSending ? 'Sending...' : 'Email Report'}
+        </EmailButton>
+        <DownloadButton onClick={handleDownload} disabled={isSending}>
+          Download PDF
+        </DownloadButton>
+      </Controls>
+    </PageContainer>
   );
 };
 

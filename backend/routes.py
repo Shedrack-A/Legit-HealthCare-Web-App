@@ -176,6 +176,12 @@ def create_patient(current_user):
 @token_required('view_patient_data')
 def get_patient_summary(current_user, staff_id):
     patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
+
+    # Get the latest screening record for this patient to fetch year-specific data
+    screening_record = ScreeningBioData.query.filter_by(
+        patient_comprehensive_id=patient.id
+    ).order_by(ScreeningBioData.screening_year.desc()).first()
+
     summary = {
         'patient_id': patient.id,
         'staff_id': patient.staff_id,
@@ -190,23 +196,34 @@ def get_patient_summary(current_user, staff_id):
         'email_address': patient.email_address,
         'race': patient.race,
         'nationality': patient.nationality,
+        'date_registered': screening_record.date_registered.isoformat() if screening_record else None,
+        'patient_id_for_year': screening_record.patient_id_for_year if screening_record else None,
     }
 
-    def merge_data(obj):
-        if obj:
-            exclude_keys = ['_sa_instance_state', 'id', 'patient_id', 'patient']
-            for key, value in obj.__dict__.items():
-                if key not in exclude_keys:
-                    summary[key] = value
+    def model_to_dict(model_instance, exclude=None):
+        if not model_instance:
+            return {}
+        if exclude is None:
+            exclude = []
 
-    merge_data(patient.consultation)
-    merge_data(patient.full_blood_count)
-    merge_data(patient.kidney_function_test)
-    merge_data(patient.lipid_profile)
-    merge_data(patient.liver_function_test)
-    merge_data(patient.ecg)
-    merge_data(patient.spirometry)
-    merge_data(patient.audiometry)
+        result = {}
+        for c in model_instance.__table__.columns:
+            if c.name not in exclude:
+                value = getattr(model_instance, c.name)
+                if isinstance(value, (datetime, date)):
+                    result[c.name] = value.isoformat()
+                else:
+                    result[c.name] = value
+        return result
+
+    summary.update(model_to_dict(patient.consultation, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.full_blood_count, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.kidney_function_test, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.lipid_profile, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.liver_function_test, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.ecg, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.spirometry, exclude=['id', 'patient_id']))
+    summary.update(model_to_dict(patient.audiometry, exclude=['id', 'patient_id']))
 
     return jsonify(summary)
 
@@ -236,6 +253,11 @@ def save_director_review(current_user, staff_id):
     if not patient.consultation:
         patient.consultation = Consultation(patient_id=patient.id)
         db.session.add(patient.consultation)
+
+    # Set the timestamp only if it's not already set
+    if not patient.consultation.director_review_timestamp:
+        patient.consultation.director_review_timestamp = datetime.utcnow()
+
     update_model(patient.consultation, consultation_fields)
 
     if not patient.ecg:
@@ -1298,6 +1320,9 @@ def get_branding():
         'logo_home': branding.logo_home,
         'report_header': branding.report_header,
         'report_signature': branding.report_signature,
+        'report_footer': branding.report_footer,
+        'doctor_name': branding.doctor_name,
+        'doctor_title': branding.doctor_title,
     })
 
 @bp.route('/branding', methods=['POST'])
@@ -1311,10 +1336,14 @@ def update_branding(current_user):
     # --- Update Clinic Name ---
     if 'clinic_name' in request.form:
         branding.clinic_name = request.form['clinic_name']
+    if 'doctor_name' in request.form:
+        branding.doctor_name = request.form['doctor_name']
+    if 'doctor_title' in request.form:
+        branding.doctor_title = request.form['doctor_title']
 
     # --- Handle File Uploads ---
     files = request.files
-    for key in ['logo_light', 'logo_dark', 'logo_home', 'report_header', 'report_signature']:
+    for key in ['logo_light', 'logo_dark', 'logo_home', 'report_header', 'report_signature', 'report_footer']:
         if key in files:
             file = files[key]
             if file and allowed_file(file.filename):
