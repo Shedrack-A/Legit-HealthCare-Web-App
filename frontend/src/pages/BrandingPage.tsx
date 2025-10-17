@@ -69,10 +69,14 @@ const BrandingPage: React.FC = () => {
     const [logoLight, setLogoLight] = useState<File | null>(null);
     const [logoDark, setLogoDark] = useState<File | null>(null);
     const [logoHome, setLogoHome] = useState<File | null>(null);
+    const [reportHeader, setReportHeader] = useState<File | null>(null);
+    const [reportSignature, setReportSignature] = useState<File | null>(null);
     const [previews, setPreviews] = useState({
         logo_light: '',
         logo_dark: '',
         logo_home: '',
+        report_header: '',
+        report_signature: '',
     });
     const [loading, setLoading] = useState(true);
 
@@ -85,6 +89,8 @@ const BrandingPage: React.FC = () => {
                     logo_light: data.logo_light ? `/api/uploads/${data.logo_light}` : '',
                     logo_dark: data.logo_dark ? `/api/uploads/${data.logo_dark}` : '',
                     logo_home: data.logo_home ? `/api/uploads/${data.logo_home}` : '',
+                    report_header: data.report_header ? `/api/uploads/${data.report_header}` : '',
+                    report_signature: data.report_signature ? `/api/uploads/${data.report_signature}` : '',
                 });
             } catch (error) {
                 console.error('Failed to fetch branding settings:', error);
@@ -102,6 +108,8 @@ const BrandingPage: React.FC = () => {
         if (logoLight) formData.append('logo_light', logoLight);
         if (logoDark) formData.append('logo_dark', logoDark);
         if (logoHome) formData.append('logo_home', logoHome);
+        if (reportHeader) formData.append('report_header', reportHeader);
+        if (reportSignature) formData.append('report_signature', reportSignature);
 
         try {
             const token = localStorage.getItem('token');
@@ -177,6 +185,28 @@ const BrandingPage: React.FC = () => {
                         onChange={(e) => handleFileChange(e, setLogoHome, 'logo_home')}
                     />
                     {previews.logo_home && <PreviewImage src={previews.logo_home} alt="Home logo preview" />}
+                </FormGroup>
+
+                <FormGroup>
+                    <Label htmlFor="reportHeader">Report Header Image</Label>
+                    <FileInput
+                        id="reportHeader"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, setReportHeader, 'report_header')}
+                    />
+                    {previews.report_header && <PreviewImage src={previews.report_header} alt="Report header preview" />}
+                </FormGroup>
+
+                <FormGroup>
+                    <Label htmlFor="reportSignature">Report Signature Image</Label>
+                    <FileInput
+                        id="reportSignature"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, setReportSignature, 'report_signature')}
+                    />
+                    {previews.report_signature && <PreviewImage src={previews.report_signature} alt="Report signature preview" />}
                 </FormGroup>
 
                 <Button type="submit">Save Changes</Button>

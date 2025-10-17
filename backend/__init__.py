@@ -43,9 +43,20 @@ def create_app(config_class='backend.config.Config'):
         from .models import Permission, db
 
         permissions = [
-            'manage_users', 'manage_roles', 'register_patient', 'view_patient_data',
-            'manage_patient_records', 'manage_screening_records', 'perform_consultation',
-            'enter_test_results', 'perform_director_review', 'view_statistics'
+            # User Management
+            'manage_users', 'view_users', 'create_users', 'edit_users', 'delete_users',
+            # Role Management
+            'manage_roles', 'view_roles', 'create_roles', 'edit_roles', 'delete_roles',
+            # Patient Management
+            'register_patient', 'view_patient_data', 'manage_patient_records',
+            'upload_patient_data', 'claim_patient_account',
+            # Screening Management
+            'manage_screening_records', 'view_screening_records',
+            'delete_screening_record', 'register_for_screening',
+            # Clinical Data
+            'perform_consultation', 'enter_test_results', 'perform_director_review',
+            # System & Other
+            'view_statistics', 'manage_branding', 'view_audit_log', 'email_report'
         ]
 
         for name in permissions:
@@ -64,19 +75,7 @@ def create_app(config_class='backend.config.Config'):
         from .models import User, Role, Permission, db
 
         # First, ensure all permissions are registered
-        permissions = [
-            'manage_users', 'manage_roles', 'register_patient', 'view_patient_data',
-            'manage_patient_records', 'manage_screening_records', 'perform_consultation',
-            'enter_test_results', 'perform_director_review', 'view_statistics'
-        ]
-
-        for name in permissions:
-            if not Permission.query.filter_by(name=name).first():
-                permission = Permission(name=name)
-                db.session.add(permission)
-                print(f"Permission '{name}' created.")
-        db.session.commit()
-        print("Permissions registration checked/completed.")
+        register_permissions.callback()
 
         username = 'admin'
         if User.query.filter_by(username=username).first():

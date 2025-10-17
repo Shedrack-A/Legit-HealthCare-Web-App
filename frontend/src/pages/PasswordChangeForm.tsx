@@ -1,49 +1,47 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useApp } from '../contexts/AppContext';
+import { Input } from '../components/common/Input';
+import { Button } from '../components/common/Button';
+import { Key } from 'react-feather';
 
 const FormContainer = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: ${({ theme }) => theme.spacing.md};
   max-width: 500px;
+  margin: auto;
+  padding: ${({ theme }) => theme.cardPadding};
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: ${({ theme }) => theme.borderRadius};
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
 `;
 
 const FormLabel = styled.label`
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+
+  &.required::after {
+    content: " *";
+    color: red;
+  }
 `;
 
-const FormInput = styled.input`
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-`;
-
-const SubmitButton = styled.button`
-  padding: 0.75rem 1.5rem;
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+const SubmitButton = styled(Button)`
   align-self: flex-start;
-`;
-
-const PageContainer = styled.div`
-  padding: 2rem;
-`;
-
-const PageTitle = styled.h1`
-  color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const PasswordChangeForm: React.FC = () => {
+  const { showFlashMessage, setIsLoading } = useApp();
   const [formData, setFormData] = useState({
     current_password: '',
     new_password: '',
@@ -57,41 +55,44 @@ const PasswordChangeForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.new_password !== formData.confirm_password) {
-      alert("New passwords do not match.");
+      showFlashMessage("New passwords do not match.", 'error');
       return;
     }
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/profile/change-password', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Password changed successfully!');
+      showFlashMessage('Password changed successfully!', 'success');
       setFormData({ current_password: '', new_password: '', confirm_password: '' });
     } catch (error: any) {
       console.error('Failed to change password:', error);
-      alert(error.response?.data?.message || 'Failed to change password.');
+      showFlashMessage(error.response?.data?.message || 'Failed to change password.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <PageContainer>
-      <PageTitle>Change Password</PageTitle>
       <FormContainer onSubmit={handleSubmit}>
         <FormGroup>
-          <FormLabel>Current Password</FormLabel>
-          <FormInput type="password" name="current_password" value={formData.current_password} onChange={handleChange} required />
+          <FormLabel className="required">Current Password</FormLabel>
+          <Input type="password" name="current_password" value={formData.current_password} onChange={handleChange} required />
         </FormGroup>
         <FormGroup>
-          <FormLabel>New Password</FormLabel>
-          <FormInput type="password" name="new_password" value={formData.new_password} onChange={handleChange} required />
+          <FormLabel className="required">New Password</FormLabel>
+          <Input type="password" name="new_password" value={formData.new_password} onChange={handleChange} required />
         </FormGroup>
         <FormGroup>
-          <FormLabel>Confirm New Password</FormLabel>
-          <FormInput type="password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} required />
+          <FormLabel className="required">Confirm New Password</FormLabel>
+          <Input type="password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} required />
         </FormGroup>
-        <SubmitButton type="submit">Change Password</SubmitButton>
+        <SubmitButton type="submit">
+            <Key size={16} />
+            Change Password
+        </SubmitButton>
       </FormContainer>
-    </PageContainer>
   );
 };
 

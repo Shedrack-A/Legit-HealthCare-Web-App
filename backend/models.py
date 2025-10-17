@@ -315,6 +315,8 @@ class Branding(db.Model):
     logo_light = db.Column(db.String(255), nullable=True)
     logo_dark = db.Column(db.String(255), nullable=True)
     logo_home = db.Column(db.String(255), nullable=True)
+    report_header = db.Column(db.String(255), nullable=True)
+    report_signature = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
         return f'<Branding {self.clinic_name}>'
