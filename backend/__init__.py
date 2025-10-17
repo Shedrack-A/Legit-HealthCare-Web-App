@@ -20,6 +20,14 @@ def create_app(config_class='backend.config.Config'):
     except OSError:
         pass
 
+    # Configure and create the upload folder
+    upload_folder = os.path.join(app.root_path, 'uploads')
+    app.config['UPLOAD_FOLDER'] = upload_folder
+    try:
+        os.makedirs(upload_folder)
+    except OSError:
+        pass
+
     db.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)

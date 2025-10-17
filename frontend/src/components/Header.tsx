@@ -1,56 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { Sun, Moon, ArrowLeft, Bell, User, LogOut } from 'react-feather';
+import { Sun, Moon, ArrowLeft, Bell, User, LogOut, Settings } from 'react-feather';
 import { useGlobalFilter, screeningYears } from '../contexts/GlobalFilterContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 const HeaderContainer = styled.header`
-  padding: 1rem 2rem;
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.lg}`};
   background-color: ${({ theme }) => theme.cardBg};
   border-bottom: 1px solid ${({ theme }) => theme.cardBorder};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: ${({ theme }) => theme.spacing.md};
+  height: 60px;
 `;
 
 const HeaderLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: ${({ theme }) => theme.spacing.md};
+  flex-shrink: 0;
 `;
 
 const HeaderRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
-`;
-
-const SelectorGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex-shrink: 0;
 `;
 
 const FormSelect = styled.select`
-  padding: 0.5rem;
+  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.borderRadius};
   background-color: ${({ theme }) => theme.cardBg};
   color: ${({ theme }) => theme.text};
+  font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
 const HeaderButton = styled.button`
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid ${({ theme }) => theme.cardBorder};
   cursor: pointer;
-  padding: 0.5rem;
+  padding: ${({ theme }) => theme.spacing.xs};
   display: flex;
   align-items: center;
   justify-content: center;
   color: ${({ theme }) => theme.text};
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  height: 36px;
+  min-width: 36px;
 
   &:hover {
     background-color: ${({ theme }) => theme.background};
@@ -59,11 +59,16 @@ const HeaderButton = styled.button`
 
 const BackButton = styled(HeaderButton)`
   color: ${({ theme }) => theme.main};
+  border-color: transparent;
+  &:hover {
+    background-color: ${({ theme }) => theme.main}22;
+  }
 `;
 
 const PageTitle = styled.h1`
-  font-size: 1.5rem;
+  font-size: ${({ theme }) => theme.fontSizes.large};
   margin: 0;
+  white-space: nowrap;
 `;
 
 const ProfileDropdownContainer = styled.div`
@@ -71,31 +76,57 @@ const ProfileDropdownContainer = styled.div`
 `;
 
 const ProfileButton = styled(HeaderButton)`
-  gap: 0.5rem;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: 0 ${({ theme }) => theme.spacing.sm};
 `;
 
 const DropdownMenu = styled.div`
   position: absolute;
-  top: 100%;
+  top: calc(100% + 5px);
   right: 0;
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-  padding: 0.5rem;
-  width: 200px;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.xs};
+  width: 220px;
   z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 `;
 
-const DropdownItem = styled.a`
+const DropdownItem = styled(Link)`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.sm};
   color: ${({ theme }) => theme.text};
   text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  border-radius: ${({ theme }) => theme.borderRadius};
 
   &:hover {
     background-color: ${({ theme }) => theme.background};
+    color: ${({ theme }) => theme.main};
+  }
+`;
+
+const DropdownButton = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.text};
+  text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
+    color: ${({ theme }) => theme.main};
   }
 `;
 
@@ -110,9 +141,9 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const pageTitles: { [key: string]: string } = {
-    '/manage-account/2fa': '2FA Authentication',
     '/dashboard': 'Dashboard',
     '/register-patient': 'Register Patient',
     '/consultation': 'Consultation',
@@ -124,10 +155,32 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
     '/messaging': 'Messaging',
     '/control-panel': 'Control Panel',
     '/manage-account': 'Manage Account',
+    '/manage-account/profile': 'Update Profile',
+    '/manage-account/change-password': 'Change Password',
+    '/manage-account/2fa': 'Manage 2FA',
+    '/control-panel/user-management': 'User Management',
+    '/control-panel/role-management': 'Role Management',
+    '/control-panel/temp-access-codes': 'Temporary Access Codes',
+    '/control-panel/audit-log': 'Audit Log',
+    '/control-panel/email-config': 'Email Configuration',
+    '/control-panel/branding': 'Branding',
+    '/control-panel/patient-upload': 'Patient Data Upload',
   };
 
   const getPageTitle = () => {
     const path = location.pathname;
+    // Exact match first
+    if (pageTitles[path]) {
+        return pageTitles[path];
+    }
+    // Then check for dynamic paths
+    if (path.startsWith('/edit-patient/')) return 'Edit Patient';
+    if (path.startsWith('/consultation/form/')) return 'Consultation Form';
+    if (path.startsWith('/test-results/')) return 'Test Result Form';
+    if (path.startsWith('/director-review/form/')) return 'Director Review Form';
+    if (path.startsWith('/patient-report/view/')) return 'View Patient Report';
+
+    // Fallback for nested routes
     for (const key in pageTitles) {
       if (path.startsWith(key)) {
         return pageTitles[key];
@@ -138,66 +191,64 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
 
   const showBackButton = location.pathname !== '/dashboard' && location.pathname !== '/';
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <HeaderContainer>
       <HeaderLeft>
-        {user && (
-          <>
-            {showBackButton && (
-              <BackButton onClick={() => navigate(-1)}>
-                <ArrowLeft size={24} />
-              </BackButton>
-            )}
-            <PageTitle>{getPageTitle()}</PageTitle>
-          </>
+        {showBackButton && (
+          <BackButton onClick={() => navigate(-1)} title="Go Back">
+            <ArrowLeft size={20} />
+          </BackButton>
         )}
+        <PageTitle>{getPageTitle()}</PageTitle>
       </HeaderLeft>
       <HeaderRight>
-        {user ? (
-          <>
-            <SelectorGroup>
-              <FormSelect
-                value={companySection}
-                onChange={(e) => setCompanySection(e.target.value)}
-              >
-                <option value="DCP">Dangote Cement - DCP</option>
-                <option value="DCT">Dangote Transport - DCT</option>
-              </FormSelect>
-            </SelectorGroup>
-            <SelectorGroup>
-              <FormSelect
-                value={screeningYear}
-                onChange={(e) => setScreeningYear(parseInt(e.target.value))}
-              >
-                {screeningYears.map(year => <option key={year} value={year}>{year}</option>)}
-              </FormSelect>
-            </SelectorGroup>
-            <HeaderButton>
-              <Bell size={20} />
-            </HeaderButton>
-            <ProfileDropdownContainer>
-              <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
-                <User size={20} />
-                <span>{user.firstName}</span>
-              </ProfileButton>
-              {dropdownOpen && (
-                <DropdownMenu>
-                  <DropdownItem href="/manage-account">
-                    <User size={16} />
-                    <span>Manage Account</span>
-                  </DropdownItem>
-                  <DropdownItem as="button" onClick={logout}>
-                    <LogOut size={16} />
-                    <span>Logout</span>
-                  </DropdownItem>
-                </DropdownMenu>
-              )}
-            </ProfileDropdownContainer>
-          </>
-        ) : null}
-        <HeaderButton onClick={toggleTheme}>
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+        <FormSelect
+          value={companySection}
+          onChange={(e) => setCompanySection(e.target.value)}
+        >
+          <option value="DCP">DCP</option>
+          <option value="DCT">DCT</option>
+        </FormSelect>
+        <FormSelect
+          value={screeningYear}
+          onChange={(e) => setScreeningYear(parseInt(e.target.value))}
+        >
+          {screeningYears.map(year => <option key={year} value={year}>{year}</option>)}
+        </FormSelect>
+        <HeaderButton onClick={toggleTheme} title="Toggle Theme">
+          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </HeaderButton>
+        <HeaderButton>
+          <Bell size={18} />
+        </HeaderButton>
+        <ProfileDropdownContainer ref={dropdownRef}>
+          <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
+            <User size={18} />
+            <span>{user?.firstName}</span>
+          </ProfileButton>
+          {dropdownOpen && (
+            <DropdownMenu>
+              <DropdownItem to="/manage-account">
+                <Settings size={16} />
+                <span>Manage Account</span>
+              </DropdownItem>
+              <DropdownButton onClick={logout}>
+                <LogOut size={16} />
+                <span>Logout</span>
+              </DropdownButton>
+            </DropdownMenu>
+          )}
+        </ProfileDropdownContainer>
       </HeaderRight>
     </HeaderContainer>
   );

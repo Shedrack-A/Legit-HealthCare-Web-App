@@ -3,34 +3,45 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Edit } from 'react-feather';
+import { useApp } from '../contexts/AppContext';
+import { Button } from '../components/common/Button';
 
 const PageContainer = styled.div`
-  padding: 2rem;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const UserTable = styled.table`
   width: 100%;
   border-collapse: collapse;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  overflow: hidden;
 `;
 
 const Th = styled.th`
   border-bottom: 2px solid ${({ theme }) => theme.cardBorder};
-  padding: 1rem;
+  padding: ${({ theme }) => theme.spacing.md};
   text-align: left;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  text-transform: uppercase;
 `;
 
 const Td = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.cardBorder};
-  padding: 1rem;
+  padding: ${({ theme }) => theme.spacing.md};
 `;
 
 const RoleSelect = styled.select`
-  padding: 0.5rem;
+  padding: ${({ theme }) => theme.spacing.xs};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  background-color: ${({ theme }) => theme.cardBg};
+  color: ${({ theme }) => theme.text};
 `;
 
 const ActionButton = styled.button`
@@ -60,12 +71,11 @@ interface Role {
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { showFlashMessage, setIsLoading, isLoading } = useApp();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+  const fetchData = async () => {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
         const [usersResponse, rolesResponse] = await Promise.all([
@@ -76,26 +86,30 @@ const UserManagementPage: React.FC = () => {
         setRoles(rolesResponse.data);
       } catch (error) {
         console.error('Failed to fetch user management data:', error);
+        showFlashMessage('Failed to fetch user data.', 'error');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
   const handleRoleChange = async (userId: number, roleId: number) => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(`/api/user/${userId}/assign-role`, { role_id: roleId }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert('Role assigned successfully!');
-      // Refresh user data
-      const usersResponse = await axios.get('/api/users', { headers: { Authorization: `Bearer ${token}` } });
-      setUsers(usersResponse.data);
+      showFlashMessage('Role assigned successfully!', 'success');
+      fetchData(); // Refresh user data
     } catch (error) {
       console.error('Failed to assign role:', error);
-      alert('Failed to assign role.');
+      showFlashMessage('Failed to assign role.', 'error');
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -103,7 +117,7 @@ const UserManagementPage: React.FC = () => {
     navigate(`/control-panel/edit-user/${userId}`);
   };
 
-  if (loading) {
+  if (isLoading) {
       return <PageContainer><p>Loading...</p></PageContainer>;
   }
 
@@ -121,26 +135,32 @@ const UserManagementPage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <Td>{user.username}</Td>
-              <Td>{user.email}</Td>
-              <Td>{user.roles.join(', ')}</Td>
-              <Td>
-                <RoleSelect onChange={(e) => handleRoleChange(user.id, parseInt(e.target.value))}>
-                  <option value="">Select a role...</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </RoleSelect>
-              </Td>
-              <Td>
-                <ActionButton onClick={() => handleEdit(user.id)} title="Edit User">
-                  <Edit size={18} />
-                </ActionButton>
-              </Td>
+          {users.length > 0 ? (
+            users.map((user) => (
+              <tr key={user.id}>
+                <Td>{user.username}</Td>
+                <Td>{user.email}</Td>
+                <Td>{user.roles.join(', ')}</Td>
+                <Td>
+                  <RoleSelect onChange={(e) => handleRoleChange(user.id, parseInt(e.target.value))} defaultValue="">
+                    <option value="" disabled>Select a role...</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>{role.name}</option>
+                    ))}
+                  </RoleSelect>
+                </Td>
+                <Td>
+                  <ActionButton onClick={() => handleEdit(user.id)} title="Edit User">
+                    <Edit size={18} />
+                  </ActionButton>
+                </Td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+                <Td colSpan={5} style={{ textAlign: 'center' }}>No users found.</Td>
             </tr>
-          ))}
+          )}
         </tbody>
       </UserTable>
     </PageContainer>

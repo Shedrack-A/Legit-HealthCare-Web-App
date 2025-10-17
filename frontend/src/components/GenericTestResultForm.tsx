@@ -1,51 +1,66 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { Input } from './common/Input';
+import { TextArea } from './common/TextArea';
 
 const FormContainer = styled.form`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
+  background-color: ${({ theme }) => theme.cardBg};
+  padding: ${({ theme }) => theme.cardPadding};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
 `;
 
 const FormLabel = styled.label`
-  margin-bottom: 0.5rem;
-`;
-
-const FormInput = styled.input`
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-  background-color: ${({ readOnly, theme }) => readOnly ? theme.cardBorder : 'inherit'};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
 const FormSelect = styled.select`
-  padding: 0.75rem;
+  width: 100%;
+  padding: ${({ theme }) => theme.inputPadding};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-`;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  background-color: ${({ theme }) => theme.cardBg};
+  color: ${({ theme }) => theme.text};
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.medium};
 
-const FormTextArea = styled.textarea`
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-  min-height: 80px;
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.main};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.main}33;
+  }
 `;
 
 const SubmitButton = styled.button`
-  grid-column: 4 / 5;
+  grid-column: 1 / -1;
   justify-self: end;
-  padding: 0.75rem 1.5rem;
+  padding: ${({ theme }) => theme.inputPadding};
   background-color: ${({ theme }) => theme.main};
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.borderRadius};
   cursor: pointer;
+  font-weight: 600;
+  width: 150px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.mainHover};
+  }
+`;
+
+const FullWidthFormGroup = styled(FormGroup)`
+  grid-column: 1 / -1;
 `;
 
 interface FormField {
@@ -54,6 +69,7 @@ interface FormField {
   type: 'text' | 'number' | 'textarea' | 'select';
   options?: string[];
   readOnly?: boolean;
+  fullWidth?: boolean;
 }
 
 interface CalculationRule {
@@ -101,16 +117,13 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
     let newData = { ...data };
     let needsRecalculating = true;
 
-    // Loop to handle chained calculations (e.g., LDL depends on HDL, which depends on TCHO)
     while(needsRecalculating) {
         needsRecalculating = false;
         calculations.forEach(rule => {
-            // Check if the changed field is a dependency of the current rule
             if (rule.dependencies.includes(changedField)) {
                 const result = rule.calculate(newData);
                 if (newData[rule.target] !== result) {
                     newData = { ...newData, [rule.target]: result };
-                    // If this calculation updated a field, we need to check if that field is a dependency for another rule
                     changedField = rule.target;
                     needsRecalculating = true;
                 }
@@ -132,11 +145,9 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      // For consultation, the patient_id might need to be in the body
-      // For test results, it's in the URL. We'll handle both.
       const submissionData = { ...formData };
       if (apiEndpoint.includes('consultations')) {
-        submissionData.staff_id = patientId; // patientId prop now holds the staff_id
+        submissionData.staff_id = patientId;
       }
 
       await axios.post(apiEndpoint, submissionData, {
@@ -151,33 +162,34 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
   };
 
   const renderField = (field: FormField) => {
-    const { name, label, type, options, readOnly } = field;
+    const { name, label, type, options, readOnly, fullWidth } = field;
     const value = formData[name] || '';
+    const ComponentGroup = fullWidth ? FullWidthFormGroup : FormGroup;
 
     switch (type) {
       case 'textarea':
         return (
-          <FormGroup key={name} style={{ gridColumn: '1 / -1' }}>
+          <ComponentGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
-            <FormTextArea id={name} name={name} value={value} onChange={handleChange} />
-          </FormGroup>
+            <TextArea id={name} name={name} value={value} onChange={handleChange} />
+          </ComponentGroup>
         );
       case 'select':
         return (
-          <FormGroup key={name}>
+          <ComponentGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
             <FormSelect id={name} name={name} value={value} onChange={handleChange}>
               <option value="">Select...</option>
               {options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </FormSelect>
-          </FormGroup>
+          </ComponentGroup>
         );
       default:
         return (
-          <FormGroup key={name}>
+          <ComponentGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
-            <FormInput id={name} type={type} name={name} value={value} onChange={handleChange} readOnly={readOnly} />
-          </FormGroup>
+            <Input id={name} type={type} name={name} value={value} onChange={handleChange} readOnly={readOnly} />
+          </ComponentGroup>
         );
     }
   };

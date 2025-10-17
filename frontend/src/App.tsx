@@ -5,6 +5,7 @@ import { lightTheme, darkTheme } from './theme/theme';
 import { GlobalStyle } from './GlobalStyle';
 import { GlobalFilterProvider } from './contexts/GlobalFilterContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { AppProvider } from './contexts/AppContext';
 import HomePage from './pages/HomePage';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
@@ -37,6 +38,9 @@ import Manage2FAPage from './pages/Manage2FAPage';
 import EmailConfigPage from './pages/EmailConfigPage';
 import MessagingPage from './pages/MessagingPage';
 import DashboardPage from './pages/DashboardPage';
+import BrandingPage from './pages/BrandingPage';
+import PatientDataUploadPage from './pages/PatientDataUploadPage';
+import ClaimAccountPage from './pages/ClaimAccountPage';
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -48,51 +52,56 @@ function App() {
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <GlobalStyle />
-      <GlobalFilterProvider>
-        <Router>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<HomePage toggleTheme={toggleTheme} theme={theme} />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/login" element={<LoginPage />} />
+      <AppProvider>
+        <GlobalFilterProvider>
+          <Router>
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<HomePage toggleTheme={toggleTheme} theme={theme} />} />
+                <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/claim-account" element={<ClaimAccountPage />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route element={<ProtectedLayout toggleTheme={toggleTheme} theme={theme} />}>
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/register-patient" element={<PatientRegistrationPage />} />
-                  <Route path="/consultation" element={<ConsultationPage />} />
-                  <Route path="/consultation/form/:staffId" element={<ConsultationFormPage />} />
-                  <Route path="/test-results" element={<TestResultsLandingPage />} />
-                  <Route path="/test-results/:testType/search" element={<TestResultSearchPage />} />
-                  <Route path="/test-results/:testType/form/:staffId" element={<TestResultFormPage />} />
-                  <Route path="/director-review/search" element={<DirectorReviewSearchPage />} />
-                  <Route path="/director-review/form/:staffId" element={<DirectorReviewFormPage />} />
-                  <Route path="/patient-report/search" element={<PatientReportSearchPage />} />
-                  <Route path="/patient-report/view/:staffId" element={<PatientReportPage />} />
-                  <Route path="/view-patients" element={<ViewPatientsPage />} />
-                  <Route path="/edit-patient/:staffId" element={<EditPatientPage />} />
-                  <Route path="/view-records" element={<ViewRecordsPage />} />
-                  {/* Control Panel Routes */}
-                  <Route path="/control-panel" element={<ControlPanelPage />} />
-                  <Route path="/control-panel/user-management" element={<UserManagementPage />} />
-                  <Route path="/control-panel/edit-user/:userId" element={<EditUserPage />} />
-                  <Route path="/control-panel/role-management" element={<RoleManagementPage />} />
-                  <Route path="/control-panel/temp-access-codes" element={<TempAccessCodePage />} />
-                  <Route path="/control-panel/audit-log" element={<AuditLogPage />} />
-                  <Route path="/control-panel/email-config" element={<EmailConfigPage />} />
-                  <Route path="/access-denied" element={<AccessDeniedPage />} />
-                  {/* Manage Account Routes */}
-                  <Route path="/manage-account" element={<ManageAccountPage />} />
-                  <Route path="/manage-account/profile" element={<ProfileUpdateForm />} />
-                  <Route path="/manage-account/change-password" element={<PasswordChangeForm />} />
-                  <Route path="/manage-account/2fa" element={<Manage2FAPage />} />
-                  <Route path="/messaging" element={<MessagingPage />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<ProtectedLayout toggleTheme={toggleTheme} theme={theme} />}>
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/register-patient" element={<PatientRegistrationPage />} />
+                    <Route path="/consultation" element={<ConsultationPage />} />
+                    <Route path="/consultation/form/:staffId" element={<ConsultationFormPage />} />
+                    <Route path="/test-results" element={<TestResultsLandingPage />} />
+                    <Route path="/test-results/:testType/search" element={<TestResultSearchPage />} />
+                    <Route path="/test-results/:testType/form/:staffId" element={<TestResultFormPage />} />
+                    <Route path="/director-review/search" element={<DirectorReviewSearchPage />} />
+                    <Route path="/director-review/form/:staffId" element={<DirectorReviewFormPage />} />
+                    <Route path="/patient-report/search" element={<PatientReportSearchPage />} />
+                    <Route path="/patient-report/view/:staffId" element={<PatientReportPage />} />
+                    <Route path="/view-patients" element={<ViewPatientsPage />} />
+                    <Route path="/edit-patient/:staffId" element={<EditPatientPage />} />
+                    <Route path="/view-records" element={<ViewRecordsPage />} />
+                    {/* Control Panel Routes */}
+                    <Route path="/control-panel" element={<ControlPanelPage />} />
+                    <Route path="/control-panel/user-management" element={<UserManagementPage />} />
+                    <Route path="/control-panel/edit-user/:userId" element={<EditUserPage />} />
+                    <Route path="/control-panel/role-management" element={<RoleManagementPage />} />
+                    <Route path="/control-panel/temp-access-codes" element={<TempAccessCodePage />} />
+                    <Route path="/control-panel/audit-log" element={<AuditLogPage />} />
+                    <Route path="/control-panel/email-config" element={<EmailConfigPage />} />
+                    <Route path="/control-panel/branding" element={<BrandingPage />} />
+                    <Route path="/control-panel/patient-upload" element={<PatientDataUploadPage />} />
+                    <Route path="/access-denied" element={<AccessDeniedPage />} />
+                    {/* Manage Account Routes */}
+                    <Route path="/manage-account" element={<ManageAccountPage />} />
+                    <Route path="/manage-account/profile" element={<ProfileUpdateForm />} />
+                    <Route path="/manage-account/change-password" element={<PasswordChangeForm />} />
+                    <Route path="/manage-account/2fa" element={<Manage2FAPage />} />
+                    <Route path="/messaging" element={<MessagingPage />} />
+                  </Route>
                 </Route>
-              </Route>
-            </Routes>
-          </AuthProvider>
-        </Router>
-      </GlobalFilterProvider>
+              </Routes>
+            </AuthProvider>
+          </Router>
+        </GlobalFilterProvider>
+      </AppProvider>
     </ThemeProvider>
   );
 }

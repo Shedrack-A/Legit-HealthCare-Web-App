@@ -1,56 +1,61 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, UserPlus, Clipboard, Droplet, UserCheck, FileText, Users, BookOpen, Settings, MessageSquare, User as UserIcon, Key, Shield, File, Mail } from 'react-feather';
+import { Home, UserPlus, Clipboard, Droplet, UserCheck, FileText, Users, BookOpen, Settings, MessageSquare, User as UserIcon, Key, Shield, File, Mail, Image, Upload } from 'react-feather';
 import { Link } from 'react-router-dom';
 
 const DashboardContainer = styled.div`
-  padding: 2rem;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const Card = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const CardTitle = styled.h2`
   margin-top: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  font-size: ${({ theme }) => theme.fontSizes.large};
 `;
 
 const CardDescription = styled.p`
   margin-top: 0;
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
   color: ${({ theme }) => theme.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
 const QuickActionsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 const ActionButton = styled(Link)`
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
+  background-color: ${({ theme }) => theme.cardBg};
+  color: ${({ theme }) => theme.main};
+  border: 1px solid ${({ theme }) => theme.main};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius};
   text-decoration: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  gap: ${({ theme }) => theme.spacing.sm};
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  font-weight: 600;
+  transition: all 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) => theme.mainHover};
+    background-color: ${({ theme }) => theme.main};
+    color: white;
+    transform: translateY(-2px);
   }
 `;
 
@@ -61,8 +66,7 @@ const navLinks = [
   { to: '/director-review/search', icon: <UserCheck />, label: "Director's Review" },
   { to: '/patient-report/search', icon: <FileText />, label: 'Patient Report' },
   { to: '/view-patients', icon: <Users />, label: 'View Patients' },
-  { to:
-'/view-records', icon: <BookOpen />, label: 'View Records' },
+  { to: '/view-records', icon: <BookOpen />, label: 'View Records' },
   { to: '/messaging', icon: <MessageSquare />, label: 'Messaging' },
 ];
 
@@ -72,6 +76,8 @@ const controlPanelLinks = [
     { to: '/control-panel/temp-access-codes', icon: <Shield />, label: 'Temp Access Codes' },
     { to: '/control-panel/audit-log', icon: <File />, label: 'Audit Log' },
     { to: '/control-panel/email-config', icon: <Mail />, label: 'Email Config' },
+    { to: '/control-panel/branding', icon: <Image />, label: 'Branding' },
+    { to: '/control-panel/patient-upload', icon: <Upload />, label: 'Patient Upload' },
 ];
 
 const DashboardPage: React.FC = () => {

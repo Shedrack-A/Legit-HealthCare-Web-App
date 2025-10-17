@@ -46,6 +46,9 @@ def register():
     )
     new_user.set_password(password)
     db.session.add(new_user)
+    # We need to commit here to get the user ID for the audit log.
+    db.session.commit()
+    log_audit(new_user, 'USER_REGISTER', f"User {new_user.username} registered.")
     db.session.commit()
 
     return jsonify({'message': 'User registered successfully'}), 201
@@ -69,6 +72,8 @@ def login():
         return jsonify({'message': 'Could not verify'}), 401
 
     current_app.logger.info(f"Login successful for user: {user.username}")
+    log_audit(user, 'USER_LOGIN', f"User {user.username} logged in.")
+    db.session.commit()
     token = jwt.encode({
         'user_id': user.id,
         'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
@@ -190,37 +195,10 @@ def create_patient(current_user):
     )
 
     db.session.add(new_patient)
+    log_audit(current_user, 'PATIENT_REGISTER', f"Registered patient {new_patient.first_name} {new_patient.last_name} (Staff ID: {new_patient.staff_id})")
     db.session.commit()
 
     return jsonify({'message': 'Patient registered successfully'}), 201
-
-@bp.route('/patients/search', methods=['GET'])
-@token_required('view_patient_data')
-def search_patient(current_user):
-    staff_id = request.args.get('staff_id')
-    if not staff_id:
-        return jsonify({'message': 'Staff ID parameter is required'}), 400
-
-    patient = Patient.query.filter_by(staff_id=staff_id).first()
-
-    if not patient:
-        return jsonify({'message': 'Patient not found'}), 404
-
-    patient_data = {
-        'staff_id': patient.staff_id,
-        'patient_id': patient.patient_id,
-        'first_name': patient.first_name,
-        'middle_name': patient.middle_name,
-        'last_name': patient.last_name,
-        'department': patient.department,
-        'gender': patient.gender,
-        'date_of_birth': patient.date_of_birth.isoformat(),
-        'contact_phone': patient.contact_phone,
-        'email_address': patient.email_address,
-        'race': patient.race,
-        'nationality': patient.nationality,
-    }
-    return jsonify(patient_data)
 
 @bp.route('/patient-summary/<string:staff_id>', methods=['GET'])
 @token_required('view_patient_data')
@@ -322,6 +300,7 @@ def save_director_review(current_user, staff_id):
     update_model(patient.audiometry, ['audiometry_result', 'audiometry_remark'])
 
     # Commit all changes to the database
+    log_audit(current_user, 'DIRECTOR_REVIEW_SAVE', f"Saved director review for patient {patient.first_name} {patient.last_name} (Staff ID: {patient.staff_id})")
     db.session.commit()
 
     return jsonify({'message': 'Director review saved successfully.'}), 200
@@ -331,19 +310,41 @@ def save_director_review(current_user, staff_id):
 def get_all_patients(current_user):
     """
     Returns a list of all patients in the comprehensive database.
+    Can also be used to search for a specific patient by staff_id.
     """
-    patients = Patient.query.order_by(Patient.first_name, Patient.last_name).all()
+    staff_id = request.args.get('staff_id')
+    if staff_id:
+        patient = Patient.query.filter_by(staff_id=staff_id).first()
+        if not patient:
+            return jsonify({'message': 'Patient not found'}), 404
 
-    results = [{
-        'staff_id': p.staff_id,
-        'first_name': p.first_name,
-        'last_name': p.last_name,
-        'department': p.department,
-        'gender': p.gender,
-        'contact_phone': p.contact_phone,
-    } for p in patients]
+        patient_data = {
+            'staff_id': patient.staff_id,
+            'patient_id': patient.patient_id,
+            'first_name': patient.first_name,
+            'middle_name': patient.middle_name,
+            'last_name': patient.last_name,
+            'department': patient.department,
+            'gender': patient.gender,
+            'date_of_birth': patient.date_of_birth.isoformat(),
+            'contact_phone': patient.contact_phone,
+            'email_address': patient.email_address,
+            'race': patient.race,
+            'nationality': patient.nationality,
+        }
+        return jsonify(patient_data)
 
-    return jsonify(results)
+    else:
+        patients = Patient.query.order_by(Patient.first_name, Patient.last_name).all()
+        results = [{
+            'staff_id': p.staff_id,
+            'first_name': p.first_name,
+            'last_name': p.last_name,
+            'department': p.department,
+            'gender': p.gender,
+            'contact_phone': p.contact_phone,
+        } for p in patients]
+        return jsonify(results)
 
 @bp.route('/patient/<string:staff_id>', methods=['DELETE'])
 @token_required('manage_patient_records')
@@ -352,6 +353,7 @@ def delete_patient(current_user, staff_id):
     Deletes a patient and all their associated data.
     """
     patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
+    log_audit(current_user, 'PATIENT_DELETE', f"Deleted patient {patient.first_name} {patient.last_name} (Staff ID: {staff_id})")
     db.session.delete(patient)
     db.session.commit()
     return jsonify({'message': 'Patient deleted successfully.'}), 200
@@ -381,8 +383,55 @@ def update_patient(current_user, staff_id):
             else:
                 setattr(patient, field, data[field])
 
+    log_audit(current_user, 'PATIENT_UPDATE', f"Updated patient {patient.first_name} {patient.last_name} (Staff ID: {staff_id})")
     db.session.commit()
     return jsonify({'message': 'Patient updated successfully.'}), 200
+
+@bp.route('/patients/claim-account', methods=['POST'])
+def claim_account():
+    data = request.get_json()
+    staff_id = data.get('staff_id')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not all([staff_id, email, password]):
+        return jsonify({'message': 'Staff ID, email, and password are required.'}), 400
+
+    patient = Patient.query.filter_by(staff_id=staff_id, email_address=email).first()
+
+    if not patient:
+        return jsonify({'message': 'Invalid Staff ID or email address.'}), 404
+
+    if patient.user_id:
+        return jsonify({'message': 'This patient account has already been claimed.'}), 409
+
+    if not User.is_password_strong(password):
+        return jsonify({'message': 'Password is not strong enough.'}), 400
+
+    # Create a new user account
+    username = f"patient_{staff_id}"
+    if User.query.filter_by(username=username).first():
+        return jsonify({'message': 'A user account for this patient already exists. Please contact support.'}), 409
+
+    new_user = User(
+        first_name=patient.first_name,
+        last_name=patient.last_name,
+        username=username,
+        email=patient.email_address,
+        phone_number=patient.contact_phone
+    )
+    new_user.set_password(password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    # Link the new user to the patient record
+    patient.user_id = new_user.id
+    db.session.commit()
+
+    log_audit(new_user, 'PATIENT_ACCOUNT_CLAIM', f"Patient {patient.first_name} {patient.last_name} claimed account.")
+    db.session.commit()
+
+    return jsonify({'message': 'Account claimed successfully. You can now log in.'}), 201
 
 @bp.route('/screening/records', methods=['GET'])
 @token_required('view_patient_data')
@@ -430,6 +479,7 @@ def delete_screening_record(current_user, record_id):
     Deletes a specific screening record.
     """
     record = ScreeningBioData.query.get_or_404(record_id)
+    log_audit(current_user, 'SCREENING_RECORD_DELETE', f"Deleted screening record for patient {record.patient_comprehensive.first_name} {record.patient_comprehensive.last_name} (Record ID: {record_id})")
     db.session.delete(record)
     db.session.commit()
     return jsonify({'message': 'Screening record deleted successfully.'}), 200
@@ -455,6 +505,7 @@ def create_or_update_consultation(current_user):
         if hasattr(consultation, key) and key != 'patient_id':
             setattr(consultation, key, value)
 
+    log_audit(current_user, 'CONSULTATION_SAVE', f"Saved consultation for patient {patient.first_name} {patient.last_name} (Staff ID: {data['staff_id']})")
     db.session.commit()
     return jsonify({'message': 'Consultation saved successfully'}), 200
 
@@ -487,6 +538,7 @@ def create_or_update_test_result(model, staff_id):
         if hasattr(result, key) and key != 'patient_id':
             setattr(result, key, value)
 
+    log_audit(current_user, 'TEST_RESULT_SAVE', f"Saved {model.__name__} for patient {patient.first_name} {patient.last_name} (Staff ID: {staff_id})")
     db.session.commit()
     return jsonify({'message': 'Test result saved successfully'}), 200
 
@@ -659,6 +711,7 @@ def register_for_screening(current_user):
         company_section=data['company_section']
     )
     db.session.add(new_screening_record)
+    log_audit(current_user, 'SCREENING_REGISTER', f"Registered patient {patient.first_name} {patient.last_name} for {data['screening_year']} screening.")
     db.session.commit()
 
     return jsonify({'message': 'Patient registered for screening successfully.'}), 201
@@ -789,6 +842,7 @@ def assign_role(current_user, user_id):
     role = Role.query.get_or_404(data['role_id'])
 
     user.roles.append(role)
+    log_audit(current_user, 'ROLE_ASSIGN', f"Assigned role '{role.name}' to user '{user.username}'")
     db.session.commit()
 
     return jsonify({'message': f'Role {role.name} assigned to user {user.username} successfully.'})
@@ -818,6 +872,7 @@ def create_role(current_user):
 
     new_role = Role(name=data['name'])
     db.session.add(new_role)
+    log_audit(current_user, 'ROLE_CREATE', f"Created role '{new_role.name}'")
     db.session.commit()
 
     return jsonify({'id': new_role.id, 'name': new_role.name, 'permissions': []}), 201
@@ -838,6 +893,7 @@ def update_role(current_user, role_id):
             if permission:
                 role.permissions.append(permission)
 
+    log_audit(current_user, 'ROLE_UPDATE', f"Updated role '{role.name}'")
     db.session.commit()
     return jsonify({'message': 'Role updated successfully.'})
 
@@ -850,6 +906,7 @@ def delete_role(current_user, role_id):
     if role.name == 'Admin':
         return jsonify({'message': 'The Admin role cannot be deleted.'}), 403
 
+    log_audit(current_user, 'ROLE_DELETE', f"Deleted role '{role.name}'")
     db.session.delete(role)
     db.session.commit()
     return jsonify({'message': 'Role deleted successfully.'})
@@ -943,6 +1000,7 @@ def activate_temp_code(current_user):
 def revoke_temp_code(current_user, code_id):
     code = TemporaryAccessCode.query.get_or_404(code_id)
     code.is_active = False
+    log_audit(current_user, 'TEMP_CODE_REVOKE', f"Revoked code '{code.code}'")
     db.session.commit()
     return jsonify({'message': 'Code revoked successfully.'})
 

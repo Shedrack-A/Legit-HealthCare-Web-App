@@ -1,28 +1,38 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { PrimaryButton } from '../components/common/Button';
+import { useApp } from '../contexts/AppContext';
+import { Input } from '../components/common/Input';
+import { Button } from '../components/common/Button';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SignUpContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 2rem 0;
+  background-color: ${({ theme }) => theme.background};
 `;
 
-const SignUpForm = styled.form`
+const SignUpFormContainer = styled.form`
   background-color: ${({ theme }) => theme.cardBg};
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius};
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 400px;
+  width: 100%;
+  max-width: 700px;
 `;
 
 const FormTitle = styled.h2`
   color: ${({ theme }) => theme.main};
   text-align: center;
   margin-bottom: 2rem;
+`;
+
+const InputsGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
 `;
 
 const FormGroup = styled.div`
@@ -32,18 +42,21 @@ const FormGroup = styled.div`
 const FormLabel = styled.label`
   display: block;
   margin-bottom: 0.5rem;
+  font-weight: 600;
+
+  &.required::after {
+    content: " *";
+    color: red;
+  }
 `;
 
-const FormInput = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-  box-sizing: border-box;
+const FullWidthFormGroup = styled(FormGroup)`
+    grid-column: 1 / -1;
 `;
-
 
 const SignUpPage: React.FC = () => {
+  const { showFlashMessage, setIsLoading } = useApp();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -62,57 +75,65 @@ const SignUpPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirm_password) {
-      alert("Passwords don't match");
+      showFlashMessage("Passwords don't match", 'error');
       return;
     }
+    setIsLoading(true);
     try {
       const response = await axios.post('/api/register', formData);
-      console.log(response.data);
-      // Handle successful registration (e.g., redirect to login)
-    } catch (error) {
-      console.error(error);
-      // Handle registration error
+      showFlashMessage(response.data.message, 'success');
+      navigate('/login');
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || 'Failed to register.';
+        showFlashMessage(errorMessage, 'error');
+    } finally {
+        setIsLoading(false);
     }
   };
 
   return (
     <SignUpContainer>
-      <SignUpForm onSubmit={handleSubmit}>
-        <FormTitle>Create Account</FormTitle>
-        <FormGroup>
-          <FormLabel htmlFor="first_name">First Name</FormLabel>
-          <FormInput type="text" name="first_name" id="first_name" onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="last_name">Last Name</FormLabel>
-          <FormInput type="text" name="last_name" id="last_name" onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="other_name">Other/Middle Name</FormLabel>
-          <FormInput type="text" name="other_name" id="other_name" onChange={handleChange} />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="username">Username</FormLabel>
-          <FormInput type="text" name="username" id="username" onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="phone_number">Phone Number</FormLabel>
-          <FormInput type="tel" name="phone_number" id="phone_number" onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="email">Email Address</FormLabel>
-          <FormInput type="email" name="email" id="email" onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="password">Password</FormLabel>
-          <FormInput type="password" name="password" id="password" onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
-          <FormInput type="password" name="confirm_password" id="confirm_password" onChange={handleChange} required />
-        </FormGroup>
-        <PrimaryButton type="submit">Sign Up</PrimaryButton>
-      </SignUpForm>
+      <SignUpFormContainer onSubmit={handleSubmit}>
+        <FormTitle>Create A Staff Account</FormTitle>
+        <InputsGrid>
+            <FormGroup>
+              <FormLabel htmlFor="first_name" className="required">First Name</FormLabel>
+              <Input type="text" name="first_name" id="first_name" onChange={handleChange} required />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel htmlFor="last_name" className="required">Last Name</FormLabel>
+              <Input type="text" name="last_name" id="last_name" onChange={handleChange} required />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel htmlFor="other_name">Other/Middle Name</FormLabel>
+              <Input type="text" name="other_name" id="other_name" onChange={handleChange} />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel htmlFor="username" className="required">Username</FormLabel>
+              <Input type="text" name="username" id="username" onChange={handleChange} required />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel htmlFor="phone_number" className="required">Phone Number</FormLabel>
+              <Input type="tel" name="phone_number" id="phone_number" onChange={handleChange} required />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel htmlFor="email" className="required">Email Address</FormLabel>
+              <Input type="email" name="email" id="email" onChange={handleChange} required />
+            </FormGroup>
+            <FullWidthFormGroup>
+              <FormLabel htmlFor="password"  className="required">Password</FormLabel>
+              <Input type="password" name="password" id="password" onChange={handleChange} required />
+            </FullWidthFormGroup>
+            <FullWidthFormGroup>
+              <FormLabel htmlFor="confirm_password"  className="required">Confirm Password</FormLabel>
+              <Input type="password" name="confirm_password" id="confirm_password" onChange={handleChange} required />
+            </FullWidthFormGroup>
+        </InputsGrid>
+        <Button type="submit" style={{ width: '100%', marginTop: '1rem' }}>Sign Up</Button>
+        <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+            Are you a patient? <Link to="/claim-account">Claim your account here</Link>.
+        </p>
+      </SignUpFormContainer>
     </SignUpContainer>
   );
 };
