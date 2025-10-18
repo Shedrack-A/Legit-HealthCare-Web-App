@@ -38,7 +38,6 @@ const ButtonWrapper = styled.div`
   margin-top: 1.5rem;
 `;
 
-
 const IconWrapper = styled.div`
   margin-bottom: 1rem;
 `;
@@ -47,7 +46,9 @@ const LoginCards: React.FC = () => {
   return (
     <CardsContainer>
       <Card>
-        <IconWrapper><Briefcase size={40} /></IconWrapper>
+        <IconWrapper>
+          <Briefcase size={40} />
+        </IconWrapper>
         <CardTitle>Staff Portal</CardTitle>
         <p>Login or sign up to access the staff dashboard.</p>
         <ButtonWrapper>
@@ -56,11 +57,15 @@ const LoginCards: React.FC = () => {
         </ButtonWrapper>
       </Card>
       <Card>
-        <IconWrapper><User size={40} /></IconWrapper>
+        <IconWrapper>
+          <User size={40} />
+        </IconWrapper>
         <CardTitle>Patient Portal</CardTitle>
         <p>Claim your account to access your medical records.</p>
         <ButtonWrapper>
-          <PrimaryLinkButton to="/claim-account">Claim Account</PrimaryLinkButton>
+          <PrimaryLinkButton to="/claim-account">
+            Claim Account
+          </PrimaryLinkButton>
         </ButtonWrapper>
       </Card>
     </CardsContainer>

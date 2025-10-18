@@ -18,7 +18,7 @@ const PatientRegistrationPage: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleRegistrationSuccess = () => {
-    setRefreshKey(oldKey => oldKey + 1);
+    setRefreshKey((oldKey) => oldKey + 1);
   };
 
   return (

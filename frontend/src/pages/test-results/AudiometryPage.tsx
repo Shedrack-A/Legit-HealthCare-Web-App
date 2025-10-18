@@ -2,9 +2,9 @@ import React from 'react';
 import TestResultLayout from '../../components/TestResultLayout';
 import GenericTestResultForm from '../../components/GenericTestResultForm';
 
-const audiometryFields: { name: string, label: string, type: 'textarea' }[] = [
-    { name: 'audiometry_result', label: 'Audiometry Result', type: 'textarea' },
-    { name: 'audiometry_remark', label: 'Audiometry Remark', type: 'textarea' },
+const audiometryFields: { name: string; label: string; type: 'textarea' }[] = [
+  { name: 'audiometry_result', label: 'Audiometry Result', type: 'textarea' },
+  { name: 'audiometry_remark', label: 'Audiometry Remark', type: 'textarea' },
 ];
 
 const AudiometryPage: React.FC = () => {

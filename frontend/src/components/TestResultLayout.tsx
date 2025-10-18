@@ -50,7 +50,10 @@ interface TestResultFormProps {
   title: string;
 }
 
-const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) => {
+const TestResultLayout: React.FC<TestResultFormProps> = ({
+  children,
+  title,
+}) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
 
@@ -59,9 +62,12 @@ const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) =>
     if (searchId.length > 2) {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patients/search?staff_id=${searchId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await axios.get(
+          `/api/patients/search?staff_id=${searchId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setSearchResults([response.data]);
       } catch (error) {
         setSearchResults([]);
@@ -76,8 +82,13 @@ const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) =>
       <TestResultContainer>
         <PageTitle>{title}</PageTitle>
         <PatientInfo>
-          <h3>{selectedPatient.first_name} {selectedPatient.last_name}</h3>
-          <p>Staff ID: {selectedPatient.staff_id} | Department: {selectedPatient.department}</p>
+          <h3>
+            {selectedPatient.first_name} {selectedPatient.last_name}
+          </h3>
+          <p>
+            Staff ID: {selectedPatient.staff_id} | Department:{' '}
+            {selectedPatient.department}
+          </p>
         </PatientInfo>
         {children(selectedPatient)}
       </TestResultContainer>
@@ -88,11 +99,18 @@ const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) =>
     <TestResultContainer>
       <PageTitle>Find Patient for {title}</PageTitle>
       <SearchContainer>
-        <SearchInput type="text" placeholder="Search by Staff ID..." onChange={handleSearch} />
+        <SearchInput
+          type="text"
+          placeholder="Search by Staff ID..."
+          onChange={handleSearch}
+        />
         {searchResults.length > 0 && (
           <SearchResults>
-            {searchResults.map(patient => (
-              <SearchResultItem key={patient.staff_id} onClick={() => setSelectedPatient(patient)}>
+            {searchResults.map((patient) => (
+              <SearchResultItem
+                key={patient.staff_id}
+                onClick={() => setSelectedPatient(patient)}
+              >
                 {patient.first_name} {patient.last_name} ({patient.staff_id})
               </SearchResultItem>
             ))}

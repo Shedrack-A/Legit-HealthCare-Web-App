@@ -51,8 +51,12 @@ const RoleManagementPage: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const [rolesResponse, permissionsResponse] = await Promise.all([
-        axios.get('/api/roles', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/permissions', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('/api/roles', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get('/api/permissions', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       const rolesData = rolesResponse.data;
@@ -80,14 +84,21 @@ const RoleManagementPage: React.FC = () => {
     fetchAllData();
   }, []);
 
-  const permissionMap = new Map(permissions.map(p => [p.id, p.name]));
+  const permissionMap = new Map(permissions.map((p) => [p.id, p.name]));
 
-  const handleSavePermissions = async (roleId: number, permissionIds: number[]) => {
+  const handleSavePermissions = async (
+    roleId: number,
+    permissionIds: number[]
+  ) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/roles/${roleId}`, { permission_ids: permissionIds }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `/api/roles/${roleId}`,
+        { permission_ids: permissionIds },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert('Permissions updated successfully!');
       fetchAllData();
       setEditingRole(null);
@@ -102,9 +113,13 @@ const RoleManagementPage: React.FC = () => {
     if (!newRoleName.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/roles', { name: newRoleName }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(
+        '/api/roles',
+        { name: newRoleName },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       // Assuming the backend returns the new role with an empty permissions list
       const newRole = { ...response.data, permissions: [] };
       setRoles([...roles, newRole]);
@@ -122,7 +137,7 @@ const RoleManagementPage: React.FC = () => {
         await axios.delete(`/api/roles/${roleId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setRoles(roles.filter(r => r.id !== roleId));
+        setRoles(roles.filter((r) => r.id !== roleId));
       } catch (error: any) {
         console.error('Failed to delete role:', error);
         alert(error.response?.data?.message || 'Failed to delete role.');
@@ -131,7 +146,11 @@ const RoleManagementPage: React.FC = () => {
   };
 
   if (loading) {
-      return <PageContainer><p>Loading...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading...</p>
+      </PageContainer>
+    );
   }
 
   return (
@@ -160,10 +179,19 @@ const RoleManagementPage: React.FC = () => {
           {roles.map((role) => (
             <tr key={role.id}>
               <Td>{role.name}</Td>
-              <Td>{role.permissions.map(pId => permissionMap.get(pId)).join(', ') || 'N/A'}</Td>
+              <Td>
+                {role.permissions
+                  .map((pId) => permissionMap.get(pId))
+                  .join(', ') || 'N/A'}
+              </Td>
               <Td>
                 <button onClick={() => setEditingRole(role)}>Edit</button>
-                <button onClick={() => handleDeleteRole(role.id)} style={{ marginLeft: '0.5rem' }}>Delete</button>
+                <button
+                  onClick={() => handleDeleteRole(role.id)}
+                  style={{ marginLeft: '0.5rem' }}
+                >
+                  Delete
+                </button>
               </Td>
             </tr>
           ))}

@@ -26,7 +26,9 @@ const SettingsCard = styled(Link)`
   text-decoration: none;
   color: inherit;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -54,9 +56,9 @@ const CardTitle = styled.h2`
 `;
 
 const CardDescription = styled.p`
-    font-size: ${({ theme }) => theme.fontSizes.small};
-    color: ${({ theme }) => theme.textSecondary};
-    line-height: 1.4;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.textSecondary};
+  line-height: 1.4;
 `;
 
 const ManageAccountPage: React.FC = () => {
@@ -65,19 +67,27 @@ const ManageAccountPage: React.FC = () => {
       <PageTitle>Manage Account</PageTitle>
       <SettingsDashboard>
         <SettingsCard to="/manage-account/profile">
-          <CardIcon><User /></CardIcon>
+          <CardIcon>
+            <User />
+          </CardIcon>
           <CardTitle>Update Profile</CardTitle>
           <CardDescription>Change your personal information.</CardDescription>
         </SettingsCard>
         <SettingsCard to="/manage-account/change-password">
-          <CardIcon><Lock /></CardIcon>
+          <CardIcon>
+            <Lock />
+          </CardIcon>
           <CardTitle>Change Password</CardTitle>
           <CardDescription>Update your account password.</CardDescription>
         </SettingsCard>
         <SettingsCard to="/manage-account/2fa">
-          <CardIcon><Key /></CardIcon>
+          <CardIcon>
+            <Key />
+          </CardIcon>
           <CardTitle>Manage 2FA</CardTitle>
-          <CardDescription>Enable or disable two-factor authentication.</CardDescription>
+          <CardDescription>
+            Enable or disable two-factor authentication.
+          </CardDescription>
         </SettingsCard>
       </SettingsDashboard>
     </PageContainer>

@@ -39,7 +39,7 @@ const FormLabel = styled.label`
   font-weight: 600;
 
   &.required::after {
-    content: " *";
+    content: ' *';
     color: red;
   }
 `;
@@ -70,7 +70,9 @@ const LoginPage: React.FC = () => {
       <LoginFormContainer onSubmit={handleSubmit}>
         <FormTitle>Staff Login</FormTitle>
         <FormGroup>
-          <FormLabel htmlFor="username" className="required">Username</FormLabel>
+          <FormLabel htmlFor="username" className="required">
+            Username
+          </FormLabel>
           <Input
             type="text"
             id="username"
@@ -81,7 +83,9 @@ const LoginPage: React.FC = () => {
           />
         </FormGroup>
         <FormGroup>
-          <FormLabel htmlFor="password"  className="required">Password</FormLabel>
+          <FormLabel htmlFor="password" className="required">
+            Password
+          </FormLabel>
           <Input
             type="password"
             id="password"
@@ -91,7 +95,9 @@ const LoginPage: React.FC = () => {
             required
           />
         </FormGroup>
-        <Button type="submit" style={{ width: '100%' }}>Login</Button>
+        <Button type="submit" style={{ width: '100%' }}>
+          Login
+        </Button>
         <p style={{ textAlign: 'center', marginTop: '1rem' }}>
           Don't have a staff account? <Link to="/signup">Sign Up</Link>
         </p>

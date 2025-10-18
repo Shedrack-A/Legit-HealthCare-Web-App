@@ -28,7 +28,7 @@ const FormLabel = styled.label`
   font-size: ${({ theme }) => theme.fontSizes.small};
 
   &.required::after {
-    content: " *";
+    content: ' *';
     color: red;
   }
 `;
@@ -47,7 +47,7 @@ const ProfileUpdateForm: React.FC = () => {
     last_name: '',
     username: '',
     email: '',
-    current_password: ''
+    current_password: '',
   });
 
   useEffect(() => {
@@ -56,9 +56,9 @@ const ProfileUpdateForm: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('/api/profile', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setFormData(prev => ({...prev, ...response.data}));
+        setFormData((prev) => ({ ...prev, ...response.data }));
       } catch (error) {
         console.error('Failed to fetch profile', error);
         showFlashMessage('Failed to load profile data.', 'error');
@@ -79,44 +79,79 @@ const ProfileUpdateForm: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put('/api/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       showFlashMessage('Profile updated successfully!', 'success');
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      showFlashMessage(error.response?.data?.message || 'Failed to update profile.', 'error');
+      showFlashMessage(
+        error.response?.data?.message || 'Failed to update profile.',
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-      <FormContainer onSubmit={handleSubmit}>
-        <FormGroup>
-          <FormLabel className="required">First Name</FormLabel>
-          <Input type="text" name="first_name" value={formData.first_name} onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel className="required">Last Name</FormLabel>
-          <Input type="text" name="last_name" value={formData.last_name} onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel className="required">Username</FormLabel>
-          <Input type="text" name="username" value={formData.username} onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel className="required">Email</FormLabel>
-          <Input type="email" name="email" value={formData.email} onChange={handleChange} required />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel className="required">Current Password (to confirm changes)</FormLabel>
-          <Input type="password" name="current_password" value={formData.current_password} onChange={handleChange} required />
-        </FormGroup>
-        <SubmitButton type="submit">
-            <Save size={16} />
-            Save Changes
-        </SubmitButton>
-      </FormContainer>
+    <FormContainer onSubmit={handleSubmit}>
+      <FormGroup>
+        <FormLabel className="required">First Name</FormLabel>
+        <Input
+          type="text"
+          name="first_name"
+          value={formData.first_name}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <FormLabel className="required">Last Name</FormLabel>
+        <Input
+          type="text"
+          name="last_name"
+          value={formData.last_name}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <FormLabel className="required">Username</FormLabel>
+        <Input
+          type="text"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <FormLabel className="required">Email</FormLabel>
+        <Input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <FormLabel className="required">
+          Current Password (to confirm changes)
+        </FormLabel>
+        <Input
+          type="password"
+          name="current_password"
+          value={formData.current_password}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <SubmitButton type="submit">
+        <Save size={16} />
+        Save Changes
+      </SubmitButton>
+    </FormContainer>
   );
 };
 

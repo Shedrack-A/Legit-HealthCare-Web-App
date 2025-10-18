@@ -57,7 +57,7 @@ const EditUserPage: React.FC = () => {
         const token = localStorage.getItem('token');
         // This endpoint doesn't exist yet, we'll need to create it.
         const response = await axios.get(`/api/user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUserData({ ...response.data, new_password: '' });
       } catch (error) {
@@ -79,7 +79,7 @@ const EditUserPage: React.FC = () => {
       const token = localStorage.getItem('token');
       // This endpoint also needs to be created/updated.
       await axios.put(`/api/user/${userId}`, userData, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       alert('User updated successfully!');
       navigate('/control-panel/user-management');
@@ -90,7 +90,11 @@ const EditUserPage: React.FC = () => {
   };
 
   if (loading) {
-    return <PageContainer><p>Loading user data...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading user data...</p>
+      </PageContainer>
+    );
   }
 
   return (
@@ -99,23 +103,49 @@ const EditUserPage: React.FC = () => {
       <Form onSubmit={handleSubmit}>
         <FormGroup>
           <FormLabel>First Name</FormLabel>
-          <FormInput type="text" name="first_name" value={userData.first_name} onChange={handleChange} />
+          <FormInput
+            type="text"
+            name="first_name"
+            value={userData.first_name}
+            onChange={handleChange}
+          />
         </FormGroup>
         <FormGroup>
           <FormLabel>Last Name</FormLabel>
-          <FormInput type="text" name="last_name" value={userData.last_name} onChange={handleChange} />
+          <FormInput
+            type="text"
+            name="last_name"
+            value={userData.last_name}
+            onChange={handleChange}
+          />
         </FormGroup>
         <FormGroup>
           <FormLabel>Username</FormLabel>
-          <FormInput type="text" name="username" value={userData.username} onChange={handleChange} />
+          <FormInput
+            type="text"
+            name="username"
+            value={userData.username}
+            onChange={handleChange}
+          />
         </FormGroup>
         <FormGroup>
           <FormLabel>Email</FormLabel>
-          <FormInput type="email" name="email" value={userData.email} onChange={handleChange} />
+          <FormInput
+            type="email"
+            name="email"
+            value={userData.email}
+            onChange={handleChange}
+          />
         </FormGroup>
         <FormGroup>
           <FormLabel>New Password (optional)</FormLabel>
-          <FormInput type="password" name="new_password" value={userData.new_password} onChange={handleChange} placeholder="Leave blank to keep current password" />
+          <FormInput
+            type="password"
+            name="new_password"
+            value={userData.new_password}
+            onChange={handleChange}
+            placeholder="Leave blank to keep current password"
+          />
         </FormGroup>
         <SubmitButton type="submit">Update User</SubmitButton>
       </Form>

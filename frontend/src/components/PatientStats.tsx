@@ -41,7 +41,10 @@ interface StatsData {
   under_40_count: number;
 }
 
-const PatientStats: React.FC<PatientStatsProps> = ({ screeningYear, companySection }) => {
+const PatientStats: React.FC<PatientStatsProps> = ({
+  screeningYear,
+  companySection,
+}) => {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
 

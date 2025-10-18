@@ -73,9 +73,9 @@ interface FormField {
 }
 
 interface CalculationRule {
-    target: string;
-    dependencies: string[];
-    calculate: (data: any) => number | string;
+  target: string;
+  dependencies: string[];
+  calculate: (data: any) => number | string;
 }
 
 interface GenericFormProps {
@@ -87,7 +87,14 @@ interface GenericFormProps {
   calculations?: CalculationRule[];
 }
 
-const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFields, apiEndpoint, fetchEndpoint, title, calculations }) => {
+const GenericTestResultForm: React.FC<GenericFormProps> = ({
+  patientId,
+  formFields,
+  apiEndpoint,
+  fetchEndpoint,
+  title,
+  calculations,
+}) => {
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
@@ -98,11 +105,11 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(fetchEndpoint, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setFormData(response.data || {});
       } catch (error) {
-        console.log("No existing data found for this test/consultation.");
+        console.log('No existing data found for this test/consultation.');
         setFormData({});
       } finally {
         setLoading(false);
@@ -111,33 +118,40 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
     fetchData();
   }, [patientId, fetchEndpoint]);
 
-  const runCalculations = useCallback((data: any, changedField: string) => {
-    if (!calculations) return data;
+  const runCalculations = useCallback(
+    (data: any, changedField: string) => {
+      if (!calculations) return data;
 
-    let newData = { ...data };
-    let needsRecalculating = true;
+      let newData = { ...data };
+      let needsRecalculating = true;
 
-    while(needsRecalculating) {
+      while (needsRecalculating) {
         needsRecalculating = false;
-        calculations.forEach(rule => {
-            if (rule.dependencies.includes(changedField)) {
-                const result = rule.calculate(newData);
-                if (newData[rule.target] !== result) {
-                    newData = { ...newData, [rule.target]: result };
-                    changedField = rule.target;
-                    needsRecalculating = true;
-                }
+        calculations.forEach((rule) => {
+          if (rule.dependencies.includes(changedField)) {
+            const result = rule.calculate(newData);
+            if (newData[rule.target] !== result) {
+              newData = { ...newData, [rule.target]: result };
+              changedField = rule.target;
+              needsRecalculating = true;
             }
+          }
         });
-    }
-    return newData;
-  }, [calculations]);
+      }
+      return newData;
+    },
+    [calculations]
+  );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
     setFormData((prev: any) => {
-        const updatedData = { ...prev, [name]: value };
-        return runCalculations(updatedData, name);
+      const updatedData = { ...prev, [name]: value };
+      return runCalculations(updatedData, name);
     });
   };
 
@@ -151,12 +165,13 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
       }
 
       await axios.post(apiEndpoint, submissionData, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       alert(`${title} data saved successfully!`);
     } catch (error: any) {
       console.error(`Failed to save ${title} data:`, error);
-      const errorMessage = error.response?.data?.message || `Failed to save ${title} data.`;
+      const errorMessage =
+        error.response?.data?.message || `Failed to save ${title} data.`;
       alert(errorMessage);
     }
   };
@@ -171,16 +186,30 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
         return (
           <ComponentGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
-            <TextArea id={name} name={name} value={value} onChange={handleChange} />
+            <TextArea
+              id={name}
+              name={name}
+              value={value}
+              onChange={handleChange}
+            />
           </ComponentGroup>
         );
       case 'select':
         return (
           <ComponentGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
-            <FormSelect id={name} name={name} value={value} onChange={handleChange}>
+            <FormSelect
+              id={name}
+              name={name}
+              value={value}
+              onChange={handleChange}
+            >
               <option value="">Select...</option>
-              {options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {options?.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
             </FormSelect>
           </ComponentGroup>
         );
@@ -188,7 +217,14 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({ patientId, formFiel
         return (
           <ComponentGroup key={name}>
             <FormLabel htmlFor={name}>{label}</FormLabel>
-            <Input id={name} type={type} name={name} value={value} onChange={handleChange} readOnly={readOnly} />
+            <Input
+              id={name}
+              type={type}
+              name={name}
+              value={value}
+              onChange={handleChange}
+              readOnly={readOnly}
+            />
           </ComponentGroup>
         );
     }

@@ -125,8 +125,13 @@ const ConsultationPage: React.FC = () => {
             <ResultLink to={`/consultation/form/${patient.staff_id}`}>
               <PatientInfo>
                 <div>
-                  <PatientName>{patient.first_name} {patient.last_name}</PatientName>
-                  <p>Staff ID: {patient.staff_id} | Department: {patient.department}</p>
+                  <PatientName>
+                    {patient.first_name} {patient.last_name}
+                  </PatientName>
+                  <p>
+                    Staff ID: {patient.staff_id} | Department:{' '}
+                    {patient.department}
+                  </p>
                 </div>
                 <div>
                   <p>Age: {patient.age}</p>

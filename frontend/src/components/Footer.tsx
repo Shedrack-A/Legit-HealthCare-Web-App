@@ -16,7 +16,10 @@ const FooterContainer = styled.footer`
 const Footer: React.FC = () => {
   return (
     <FooterContainer>
-      <p>&copy; {new Date().getFullYear()} Legit HealthCare Services Ltd. All rights reserved.</p>
+      <p>
+        &copy; {new Date().getFullYear()} Legit HealthCare Services Ltd. All
+        rights reserved.
+      </p>
     </FooterContainer>
   );
 };

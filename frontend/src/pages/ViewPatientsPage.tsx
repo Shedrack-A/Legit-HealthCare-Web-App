@@ -37,8 +37,8 @@ const Td = styled.td`
 `;
 
 const ActionContainer = styled.div`
-    display: flex;
-    gap: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 interface Patient {
@@ -76,7 +76,11 @@ const ViewPatientsPage: React.FC = () => {
   }, []);
 
   const handleDelete = async (staffId: string) => {
-    if (window.confirm('Are you sure you want to delete this patient and all their records?')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this patient and all their records?'
+      )
+    ) {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
@@ -99,7 +103,11 @@ const ViewPatientsPage: React.FC = () => {
   };
 
   if (isLoading && patients.length === 0) {
-    return <PageContainer><p>Loading patients...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading patients...</p>
+      </PageContainer>
+    );
   }
 
   return (
@@ -129,15 +137,24 @@ const ViewPatientsPage: React.FC = () => {
                 <Td>{patient.contact_phone}</Td>
                 <Td>
                   <ActionContainer>
-                    <Button onClick={() => handleEdit(patient.staff_id)}><Edit size={16} /></Button>
-                    <Button onClick={() => handleDelete(patient.staff_id)} style={{backgroundColor: '#dc3545'}}><Trash2 size={16} /></Button>
+                    <Button onClick={() => handleEdit(patient.staff_id)}>
+                      <Edit size={16} />
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(patient.staff_id)}
+                      style={{ backgroundColor: '#dc3545' }}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </ActionContainer>
                 </Td>
               </tr>
             ))
           ) : (
             <tr>
-                <Td colSpan={7} style={{ textAlign: 'center' }}>No patients found.</Td>
+              <Td colSpan={7} style={{ textAlign: 'center' }}>
+                No patients found.
+              </Td>
             </tr>
           )}
         </tbody>

@@ -5,10 +5,10 @@ import App from './App';
 import axios from 'axios';
 
 jest.mock('axios', () => ({
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn(),
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
 }));
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 

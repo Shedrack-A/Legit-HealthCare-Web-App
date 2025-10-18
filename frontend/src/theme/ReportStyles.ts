@@ -12,7 +12,7 @@ export const A4Page = styled.div`
   display: block;
   margin: 0 auto;
   margin-bottom: 0.5cm;
-  box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+  box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
   padding: 2cm;
   box-sizing: border-box;
 

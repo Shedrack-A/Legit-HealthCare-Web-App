@@ -36,9 +36,13 @@ const AccessDeniedPage: React.FC = () => {
     if (!code.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/temp-codes/activate', { code }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(
+        '/api/temp-codes/activate',
+        { code },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert(response.data.message);
       window.history.back();
     } catch (error: any) {
@@ -50,9 +54,13 @@ const AccessDeniedPage: React.FC = () => {
   const handleRequestAccess = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/request-access', { permission: permissionNeeded }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(
+        '/api/request-access',
+        { permission: permissionNeeded },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert(response.data.message);
     } catch (error: any) {
       console.error('Failed to request access:', error);
@@ -63,10 +71,22 @@ const AccessDeniedPage: React.FC = () => {
   return (
     <PageContainer>
       <PageTitle>Access Denied</PageTitle>
-      <p>You do not have the required permission (<b>{permissionNeeded}</b>) to view this page.</p>
+      <p>
+        You do not have the required permission (<b>{permissionNeeded}</b>) to
+        view this page.
+      </p>
 
-      <div style={{ marginTop: '2rem', borderTop: '1px solid #ccc', paddingTop: '2rem' }}>
-        <p>If you have been given a temporary access code, you can activate it here.</p>
+      <div
+        style={{
+          marginTop: '2rem',
+          borderTop: '1px solid #ccc',
+          paddingTop: '2rem',
+        }}
+      >
+        <p>
+          If you have been given a temporary access code, you can activate it
+          here.
+        </p>
         <ActivationForm onSubmit={handleActivate}>
           <CodeInput
             type="text"
@@ -78,8 +98,16 @@ const AccessDeniedPage: React.FC = () => {
         </ActivationForm>
       </div>
 
-      <div style={{ marginTop: '2rem', borderTop: '1px solid #ccc', paddingTop: '2rem' }}>
-        <p>Alternatively, you can request temporary access from an administrator.</p>
+      <div
+        style={{
+          marginTop: '2rem',
+          borderTop: '1px solid #ccc',
+          paddingTop: '2rem',
+        }}
+      >
+        <p>
+          Alternatively, you can request temporary access from an administrator.
+        </p>
         <button onClick={handleRequestAccess}>Request Access</button>
       </div>
     </PageContainer>

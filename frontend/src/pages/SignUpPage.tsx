@@ -30,9 +30,9 @@ const FormTitle = styled.h2`
 `;
 
 const InputsGrid = styled.div`
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
 `;
 
 const FormGroup = styled.div`
@@ -45,13 +45,13 @@ const FormLabel = styled.label`
   font-weight: 600;
 
   &.required::after {
-    content: " *";
+    content: ' *';
     color: red;
   }
 `;
 
 const FullWidthFormGroup = styled(FormGroup)`
-    grid-column: 1 / -1;
+  grid-column: 1 / -1;
 `;
 
 const SignUpPage: React.FC = () => {
@@ -84,10 +84,11 @@ const SignUpPage: React.FC = () => {
       showFlashMessage(response.data.message, 'success');
       navigate('/login');
     } catch (error: any) {
-        const errorMessage = error.response?.data?.message || 'Failed to register.';
-        showFlashMessage(errorMessage, 'error');
+      const errorMessage =
+        error.response?.data?.message || 'Failed to register.';
+      showFlashMessage(errorMessage, 'error');
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -96,42 +97,106 @@ const SignUpPage: React.FC = () => {
       <SignUpFormContainer onSubmit={handleSubmit}>
         <FormTitle>Create A Staff Account</FormTitle>
         <InputsGrid>
-            <FormGroup>
-              <FormLabel htmlFor="first_name" className="required">First Name</FormLabel>
-              <Input type="text" name="first_name" id="first_name" onChange={handleChange} required />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel htmlFor="last_name" className="required">Last Name</FormLabel>
-              <Input type="text" name="last_name" id="last_name" onChange={handleChange} required />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel htmlFor="other_name">Other/Middle Name</FormLabel>
-              <Input type="text" name="other_name" id="other_name" onChange={handleChange} />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel htmlFor="username" className="required">Username</FormLabel>
-              <Input type="text" name="username" id="username" onChange={handleChange} required />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel htmlFor="phone_number" className="required">Phone Number</FormLabel>
-              <Input type="tel" name="phone_number" id="phone_number" onChange={handleChange} required />
-            </FormGroup>
-            <FormGroup>
-              <FormLabel htmlFor="email" className="required">Email Address</FormLabel>
-              <Input type="email" name="email" id="email" onChange={handleChange} required />
-            </FormGroup>
-            <FullWidthFormGroup>
-              <FormLabel htmlFor="password"  className="required">Password</FormLabel>
-              <Input type="password" name="password" id="password" onChange={handleChange} required />
-            </FullWidthFormGroup>
-            <FullWidthFormGroup>
-              <FormLabel htmlFor="confirm_password"  className="required">Confirm Password</FormLabel>
-              <Input type="password" name="confirm_password" id="confirm_password" onChange={handleChange} required />
-            </FullWidthFormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="first_name" className="required">
+              First Name
+            </FormLabel>
+            <Input
+              type="text"
+              name="first_name"
+              id="first_name"
+              onChange={handleChange}
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="last_name" className="required">
+              Last Name
+            </FormLabel>
+            <Input
+              type="text"
+              name="last_name"
+              id="last_name"
+              onChange={handleChange}
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="other_name">Other/Middle Name</FormLabel>
+            <Input
+              type="text"
+              name="other_name"
+              id="other_name"
+              onChange={handleChange}
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="username" className="required">
+              Username
+            </FormLabel>
+            <Input
+              type="text"
+              name="username"
+              id="username"
+              onChange={handleChange}
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="phone_number" className="required">
+              Phone Number
+            </FormLabel>
+            <Input
+              type="tel"
+              name="phone_number"
+              id="phone_number"
+              onChange={handleChange}
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor="email" className="required">
+              Email Address
+            </FormLabel>
+            <Input
+              type="email"
+              name="email"
+              id="email"
+              onChange={handleChange}
+              required
+            />
+          </FormGroup>
+          <FullWidthFormGroup>
+            <FormLabel htmlFor="password" className="required">
+              Password
+            </FormLabel>
+            <Input
+              type="password"
+              name="password"
+              id="password"
+              onChange={handleChange}
+              required
+            />
+          </FullWidthFormGroup>
+          <FullWidthFormGroup>
+            <FormLabel htmlFor="confirm_password" className="required">
+              Confirm Password
+            </FormLabel>
+            <Input
+              type="password"
+              name="confirm_password"
+              id="confirm_password"
+              onChange={handleChange}
+              required
+            />
+          </FullWidthFormGroup>
         </InputsGrid>
-        <Button type="submit" style={{ width: '100%', marginTop: '1rem' }}>Sign Up</Button>
+        <Button type="submit" style={{ width: '100%', marginTop: '1rem' }}>
+          Sign Up
+        </Button>
         <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-            Are you a patient? <Link to="/claim-account">Claim your account here</Link>.
+          Are you a patient?{' '}
+          <Link to="/claim-account">Claim your account here</Link>.
         </p>
       </SignUpFormContainer>
     </SignUpContainer>

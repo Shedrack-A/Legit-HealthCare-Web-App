@@ -52,16 +52,16 @@ const FlashMessageCard = styled.div<{ variant: FlashMessageVariant }>`
 `;
 
 const LoadingOverlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
 `;
 
 const spinner = keyframes`
@@ -71,23 +71,28 @@ const spinner = keyframes`
 `;
 
 const Spinner = styled.div`
-    width: 50px;
-    height: 50px;
-    border: 5px solid #fff;
-    border-top-color: ${({ theme }) => theme.main};
-    border-radius: 50%;
-    animation: ${spinner} 0.6s linear infinite;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #fff;
+  border-top-color: ${({ theme }) => theme.main};
+  border-radius: 50%;
+  animation: ${spinner} 0.6s linear infinite;
 `;
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AppProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [flashMessages, setFlashMessages] = useState<FlashMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const showFlashMessage = (message: string, variant: FlashMessageVariant = 'info') => {
+  const showFlashMessage = (
+    message: string,
+    variant: FlashMessageVariant = 'info'
+  ) => {
     const id = Date.now();
-    setFlashMessages(prev => [...prev, { id, message, variant }]);
+    setFlashMessages((prev) => [...prev, { id, message, variant }]);
     setTimeout(() => {
-      setFlashMessages(prev => prev.filter(msg => msg.id !== id));
+      setFlashMessages((prev) => prev.filter((msg) => msg.id !== id));
     }, 5000);
   };
 
@@ -102,9 +107,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         ))}
       </FlashMessageContainer>
       {isLoading && (
-          <LoadingOverlay>
-              <Spinner />
-          </LoadingOverlay>
+        <LoadingOverlay>
+          <Spinner />
+        </LoadingOverlay>
       )}
     </AppContext.Provider>
   );

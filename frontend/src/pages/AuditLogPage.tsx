@@ -58,7 +58,11 @@ const AuditLogPage: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <PageContainer><p>Loading audit logs...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading audit logs...</p>
+      </PageContainer>
+    );
   }
 
   return (
@@ -74,7 +78,7 @@ const AuditLogPage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {logs.map(log => (
+          {logs.map((log) => (
             <tr key={log.id}>
               <Td>{new Date(log.timestamp).toLocaleString()}</Td>
               <Td>{log.username}</Td>

@@ -19,7 +19,7 @@ const PatientHeader = styled.div`
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 `;
 
 interface PatientData {
@@ -32,7 +32,10 @@ interface PatientData {
 }
 
 const TestResultFormPage: React.FC = () => {
-  const { testType, staffId } = useParams<{ testType: string; staffId: string }>();
+  const { testType, staffId } = useParams<{
+    testType: string;
+    staffId: string;
+  }>();
   const testConfig = testType ? TEST_TYPE_CONFIG[testType] : null;
 
   const [patient, setPatient] = useState<PatientData | null>(null);
@@ -45,11 +48,11 @@ const TestResultFormPage: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(`/api/patient/${staffId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setPatient(response.data);
       } catch (error) {
-        console.error("Could not fetch patient details", error);
+        console.error('Could not fetch patient details', error);
         setPatient(null);
       } finally {
         setLoading(false);
@@ -69,11 +72,17 @@ const TestResultFormPage: React.FC = () => {
 
   const getCalculations = () => {
     if (testType === 'kidney-function-test') {
-      return [{
-        target: 'hc03',
-        dependencies: ['k', 'na', 'cl'],
-        calculate: (data: any) => (parseFloat(data.k || 0) + parseFloat(data.na || 0)) - parseFloat(data.cl || 0) - 16,
-      }];
+      return [
+        {
+          target: 'hc03',
+          dependencies: ['k', 'na', 'cl'],
+          calculate: (data: any) =>
+            parseFloat(data.k || 0) +
+            parseFloat(data.na || 0) -
+            parseFloat(data.cl || 0) -
+            16,
+        },
+      ];
     }
     if (testType === 'lipid-profile') {
       return [
@@ -85,8 +94,11 @@ const TestResultFormPage: React.FC = () => {
         {
           target: 'ldl',
           dependencies: ['tcho', 'tg', 'hdl'],
-          calculate: (data: any) => parseFloat(data.tcho || 0) + (parseFloat(data.tg || 0) / 5) + parseFloat(data.hdl || 0),
-        }
+          calculate: (data: any) =>
+            parseFloat(data.tcho || 0) +
+            parseFloat(data.tg || 0) / 5 +
+            parseFloat(data.hdl || 0),
+        },
       ];
     }
     return [];
@@ -107,8 +119,13 @@ const TestResultFormPage: React.FC = () => {
       <PageTitle>{testConfig.name}</PageTitle>
 
       <PatientHeader>
-        <h2>{patient.first_name} {patient.last_name}</h2>
-        <p>Staff ID: {patient.staff_id} | Department: {patient.department} | Age: {patient.age}</p>
+        <h2>
+          {patient.first_name} {patient.last_name}
+        </h2>
+        <p>
+          Staff ID: {patient.staff_id} | Department: {patient.department} | Age:{' '}
+          {patient.age}
+        </p>
       </PatientHeader>
 
       <GenericTestResultForm
