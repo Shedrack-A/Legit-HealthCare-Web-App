@@ -15,7 +15,7 @@ interface AppContextType {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const FlashMessageContainer = styled.div`
   position: fixed;

@@ -56,14 +56,17 @@ const EmailButton = styled(ActionButton)`
 `;
 
 const MyReportPage: React.FC = () => {
-  const { screeningYear, companySection } = useContext(GlobalFilterContext);
-  const { showFlashMessage, setIsLoading } = useContext(AppContext);
+  const globalFilterContext = useContext(GlobalFilterContext);
+  const appContext = useContext(AppContext);
 
   const [summary, setSummary] = useState<any>(null);
   const [branding, setBranding] = useState<any>(null);
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
+    if (!appContext) return;
+    const { setIsLoading, showFlashMessage } = appContext;
+
     const fetchAllData = async () => {
       setIsLoading(true);
       try {
@@ -80,7 +83,7 @@ const MyReportPage: React.FC = () => {
 
       } catch (error) {
         console.error('Failed to fetch report data:', error);
-        showFlashMessage('error', 'Could not load your report data.');
+        showFlashMessage('Could not load your report data.', 'error');
         setSummary(null);
         setBranding(null);
       } finally {
@@ -88,7 +91,15 @@ const MyReportPage: React.FC = () => {
       }
     };
     fetchAllData();
-  }, [setIsLoading, showFlashMessage]);
+  }, [appContext]);
+
+  if (!globalFilterContext || !appContext) {
+    // Or return a loading spinner, an error message, etc.
+    return <div>Loading context...</div>;
+  }
+
+  const { screeningYear, companySection } = globalFilterContext;
+  const { showFlashMessage, setIsLoading } = appContext;
 
   const handleDownload = async () => {
     const page1 = document.getElementById('report-page-1');
@@ -127,7 +138,7 @@ const MyReportPage: React.FC = () => {
 
         } catch (err) {
             console.error("PDF generation failed:", err);
-            showFlashMessage('error', 'PDF generation failed.');
+            showFlashMessage('PDF generation failed.', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -142,10 +153,10 @@ const MyReportPage: React.FC = () => {
       await axios.post(`/api/patient-report/email`, { staff_id: summary.staff_id }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      showFlashMessage('success', 'Report has been sent successfully!');
+      showFlashMessage('Report has been sent successfully!', 'success');
     } catch (error) {
       console.error('Failed to email report:', error);
-      showFlashMessage('error', 'There was an error sending the report.');
+      showFlashMessage('There was an error sending the report.', 'error');
     } finally {
       setIsSending(false);
     }
