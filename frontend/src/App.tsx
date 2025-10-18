@@ -42,6 +42,7 @@ import BrandingPage from './pages/BrandingPage';
 import PatientDataUploadPage from './pages/PatientDataUploadPage';
 import ClaimAccountPage from './pages/ClaimAccountPage';
 import MyReportPage from './pages/MyReportPage';
+import DownloadsPage from './pages/DownloadsPage';
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -161,6 +162,10 @@ function App() {
                     <Route
                       path="/control-panel/patient-upload"
                       element={<PatientDataUploadPage />}
+                    />
+                    <Route
+                      path="/control-panel/downloads"
+                      element={<DownloadsPage />}
                     />
                     <Route
                       path="/access-denied"

@@ -9,6 +9,7 @@ import {
   Mail,
   Image,
   Upload,
+  Download,
 } from 'react-feather';
 
 const PageContainer = styled.div`
@@ -134,6 +135,15 @@ const ControlPanelPage: React.FC = () => {
           <CardTitle>Patient Data Upload</CardTitle>
           <CardDescription>
             Upload patient bio-data from an Excel file.
+          </CardDescription>
+        </AdminCard>
+        <AdminCard to="/control-panel/downloads">
+          <CardIcon>
+            <Download />
+          </CardIcon>
+          <CardTitle>Downloads</CardTitle>
+          <CardDescription>
+            Download patient and screening data.
           </CardDescription>
         </AdminCard>
       </AdminDashboard>
