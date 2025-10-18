@@ -56,7 +56,9 @@ def create_app(config_class='backend.config.Config'):
             # Clinical Data
             'perform_consultation', 'enter_test_results', 'perform_director_review',
             # System & Other
-            'view_statistics', 'manage_branding', 'view_audit_log', 'email_report'
+            'view_statistics', 'manage_branding', 'view_audit_log', 'email_report',
+            # Downloads
+            'download_patient_biodata', 'download_screening_data', 'download_screening_biodata'
         ]
 
         for name in permissions:

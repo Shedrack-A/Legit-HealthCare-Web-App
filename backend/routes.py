@@ -1361,7 +1361,7 @@ def disable_2fa(current_user):
 
 # Download Routes
 @bp.route('/patients/download', methods=['GET'])
-@token_required('view_patient_data')
+@token_required('download_patient_biodata')
 def download_all_patients(current_user):
     patients = Patient.query.order_by(Patient.first_name, Patient.last_name).all()
 
@@ -1398,7 +1398,7 @@ def download_all_patients(current_user):
     )
 
 @bp.route('/screening/download', methods=['GET'])
-@token_required('view_screening_records')
+@token_required('download_screening_data')
 def download_screening_data(current_user):
     screening_year = request.args.get('screening_year', type=int)
     company_section = request.args.get('company_section')
@@ -1493,7 +1493,7 @@ def download_screening_data(current_user):
     )
 
 @bp.route('/screening/biodata/download', methods=['GET'])
-@token_required('view_screening_records')
+@token_required('download_screening_biodata')
 def download_screening_biodata(current_user):
     screening_year = request.args.get('screening_year', type=int)
     company_section = request.args.get('company_section')
