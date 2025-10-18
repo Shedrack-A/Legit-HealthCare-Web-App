@@ -1,53 +1,63 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { Users, UserCheck, Key, Clipboard, Mail } from 'react-feather';
+import { Users, UserCheck, Key, Clipboard, Mail, Image, Upload } from 'react-feather';
 
 const PageContainer = styled.div`
-  padding: 2rem;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const AdminDashboard = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 const AdminCard = styled(Link)`
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
-  padding: 2rem;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: ${({ theme }) => theme.cardHover};
   }
 `;
 
 const CardIcon = styled.div`
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: ${({ theme }) => theme.main};
-  margin-bottom: 1rem;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
 const CardTitle = styled.h2`
   margin-top: 0;
-  text-align: center;
-  color: ${({ theme }) => theme.main};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  color: ${({ theme }) => theme.text};
+`;
+
+const CardDescription = styled.p`
+    font-size: ${({ theme }) => theme.fontSizes.small};
+    color: ${({ theme }) => theme.textSecondary};
+    line-height: 1.4;
+    text-decoration: none;
 `;
 
 const ControlPanelPage: React.FC = () => {
@@ -58,27 +68,37 @@ const ControlPanelPage: React.FC = () => {
         <AdminCard to="/control-panel/user-management">
           <CardIcon><Users /></CardIcon>
           <CardTitle>User Management</CardTitle>
-          <p>Assign roles and manage user accounts.</p>
+          <CardDescription>Assign roles and manage user accounts.</CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/role-management">
           <CardIcon><UserCheck /></CardIcon>
           <CardTitle>Role & Permission Management</CardTitle>
-          <p>Create, edit, and define roles and their permissions.</p>
+          <CardDescription>Create, edit, and define roles and their permissions.</CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/temp-access-codes">
           <CardIcon><Key /></CardIcon>
           <CardTitle>Temporary Access Codes</CardTitle>
-          <p>Generate and manage temporary, permission-granting codes.</p>
+          <CardDescription>Generate and manage temporary, permission-granting codes.</CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/audit-log">
           <CardIcon><Clipboard /></CardIcon>
           <CardTitle>Audit Log</CardTitle>
-          <p>View a log of all significant user actions.</p>
+          <CardDescription>View a log of all significant user actions.</CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/email-config">
           <CardIcon><Mail /></CardIcon>
           <CardTitle>Email Configuration</CardTitle>
-          <p>Configure the system's email settings.</p>
+          <CardDescription>Configure the system's email settings.</CardDescription>
+        </AdminCard>
+        <AdminCard to="/control-panel/branding">
+          <CardIcon><Image /></CardIcon>
+          <CardTitle>Branding</CardTitle>
+          <CardDescription>Manage clinic name and logos.</CardDescription>
+        </AdminCard>
+        <AdminCard to="/control-panel/patient-upload">
+          <CardIcon><Upload /></CardIcon>
+          <CardTitle>Patient Data Upload</CardTitle>
+          <CardDescription>Upload patient bio-data from an Excel file.</CardDescription>
         </AdminCard>
       </AdminDashboard>
     </PageContainer>

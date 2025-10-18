@@ -14,12 +14,14 @@ This is the official web application for **Legit HealthCare Services Ltd**, desi
 - **Temporary Access Codes:** A secure system for granting temporary permissions to users.
 - **Theme Switching:** Light and dark mode support for user preference.
 - **Responsive Design:** Fully responsive and adaptive design for a seamless experience on desktops, tablets, and mobile devices.
+- **Branding:** Admins can customize the clinic name and logos for different themes and the report.
+- **Patient Data Upload:** Admins can bulk upload patient data from an Excel file.
 
 ## 🎨 Design & Theme
 
-- **Main System Color:** `#08733f`
-- **Accent Color:** `#06e175`
-- **Background Color:** `#eefff5`
+- **Main System Color:** `#056ded`
+- **Accent Color:** `#4cc4ff`
+- **Background Color:** `#f4f7fc` (light mode), `#1a1a1a` (dark mode)
 - **Default Font:** Montserrat
 - **UI Style:** Card-based design with smooth animations and hover effects.
 
@@ -94,6 +96,36 @@ This is the official web application for **Legit HealthCare Services Ltd**, desi
     npm start
     ```
     The React app will open in your browser at `http://localhost:3000`.
+
+### Branding
+
+To customize the application's branding, log in as an admin and navigate to the "Control Panel" -> "Branding". Here you can:
+
+*   **Set the Clinic Name:** This will be displayed on the home page and in the report header.
+*   **Upload Logos:**
+    *   **Light Theme Logo:** Displayed in the side navigation when the light theme is active.
+    *   **Dark Theme Logo:** Displayed in the side navigation when the dark theme is active.
+    *   **Home Page Logo:** Displayed on the home page above the welcome message.
+    *   **Report Header Image:** Displayed at the top of the generated PDF report.
+    *   **Report Signature Image:** Displayed at the bottom of the generated PDF report.
+
+### Patient Data Upload
+
+To bulk upload patient data, log in as an admin and navigate to the "Control Panel" -> "Patient Data Upload".
+
+*   **File Format:** The file must be an Excel file (`.xlsx`).
+*   **Columns:** The first row of the file should be a header row, and the subsequent rows should contain the patient data in the following order:
+    1.  Staff ID
+    2.  First Name
+    3.  Middle Name (can be empty)
+    4.  Last Name
+    5.  Department
+    6.  Gender
+    7.  Date of Birth (in `YYYY-MM-DD` format)
+    8.  Contact Phone
+    9.  Email Address
+    10. Race
+    11. Nationality
 
 ---
 *This document will be updated as new features are developed and integrated.*

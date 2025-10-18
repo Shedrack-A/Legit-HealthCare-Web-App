@@ -4,50 +4,59 @@ import { Link } from 'react-router-dom';
 import { User, Lock, Key } from 'react-feather';
 
 const PageContainer = styled.div`
-  padding: 2rem;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const SettingsDashboard = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 const SettingsCard = styled(Link)`
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
-  padding: 2rem;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: ${({ theme }) => theme.cardHover};
   }
 `;
 
 const CardIcon = styled.div`
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: ${({ theme }) => theme.main};
-  margin-bottom: 1rem;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
 const CardTitle = styled.h2`
   margin-top: 0;
-  text-align: center;
-  color: ${({ theme }) => theme.main};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  color: ${({ theme }) => theme.text};
+`;
+
+const CardDescription = styled.p`
+    font-size: ${({ theme }) => theme.fontSizes.small};
+    color: ${({ theme }) => theme.textSecondary};
+    line-height: 1.4;
 `;
 
 const ManageAccountPage: React.FC = () => {
@@ -58,17 +67,17 @@ const ManageAccountPage: React.FC = () => {
         <SettingsCard to="/manage-account/profile">
           <CardIcon><User /></CardIcon>
           <CardTitle>Update Profile</CardTitle>
-          <p>Change your personal information.</p>
+          <CardDescription>Change your personal information.</CardDescription>
         </SettingsCard>
         <SettingsCard to="/manage-account/change-password">
           <CardIcon><Lock /></CardIcon>
           <CardTitle>Change Password</CardTitle>
-          <p>Update your account password.</p>
+          <CardDescription>Update your account password.</CardDescription>
         </SettingsCard>
         <SettingsCard to="/manage-account/2fa">
           <CardIcon><Key /></CardIcon>
           <CardTitle>Manage 2FA</CardTitle>
-          <p>Enable or disable two-factor authentication.</p>
+          <CardDescription>Enable or disable two-factor authentication.</CardDescription>
         </SettingsCard>
       </SettingsDashboard>
     </PageContainer>

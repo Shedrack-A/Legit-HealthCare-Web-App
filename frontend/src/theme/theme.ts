@@ -1,25 +1,46 @@
-export const lightTheme = {
+const shared = {
   main: '#056ded',
   mainHover: '#0059b3',
   accent: '#4cc4ff',
-  background: '#ffffff',
-  text: '#000000',
+  disabled: '#a0a0a0',
+
+  // Spacing and Sizing
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '12px',
+    lg: '16px',
+    xl: '24px',
+  },
+  fontSizes: {
+    small: '0.875rem',
+    medium: '1rem',
+    large: '1.25rem',
+    xlarge: '1.5rem',
+  },
+  borderRadius: '6px',
+  cardPadding: '1rem',
+  inputPadding: '0.5rem 0.8rem',
+};
+
+export const lightTheme = {
+  ...shared,
+  mode: 'light',
+  background: '#f4f7fc',
+  text: '#1c1c1e',
   textSecondary: '#6c757d',
   cardBg: '#ffffff',
   cardBorder: '#e0e0e0',
   cardHover: '#f5f5f5',
-  disabled: '#a0a0a0',
 };
 
 export const darkTheme = {
-  main: '#056ded',
-  mainHover: '#0059b3',
-  accent: '#4cc4ff',
-  background: '#121212',
-  text: '#ffffff',
+  ...shared,
+  mode: 'dark',
+  background: '#1a1a1a',
+  text: '#e1e1e1',
   textSecondary: '#adb5bd',
-  cardBg: '#1e1e1e',
-  cardBorder: '#333333',
-  cardHover: '#2a2a2a',
-  disabled: '#555555',
+  cardBg: '#252525',
+  cardBorder: '#383838',
+  cardHover: '#303030',
 };

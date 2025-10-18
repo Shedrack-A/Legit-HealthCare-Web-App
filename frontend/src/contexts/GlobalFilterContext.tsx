@@ -10,7 +10,7 @@ interface GlobalFilterContextType {
 }
 
 // Create the context with a default value
-const GlobalFilterContext = createContext<GlobalFilterContextType | undefined>(undefined);
+export const GlobalFilterContext = createContext<GlobalFilterContextType | undefined>(undefined);
 
 // Create a provider component
 interface GlobalFilterProviderProps {

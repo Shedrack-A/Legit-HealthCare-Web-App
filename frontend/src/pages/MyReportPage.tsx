@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -56,8 +55,7 @@ const EmailButton = styled(ActionButton)`
   }
 `;
 
-const PatientReportPage: React.FC = () => {
-  const { staffId } = useParams<{ staffId: string }>();
+const MyReportPage: React.FC = () => {
   const globalFilterContext = useContext(GlobalFilterContext);
   const appContext = useContext(AppContext);
 
@@ -66,7 +64,7 @@ const PatientReportPage: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    if (!appContext || !staffId) return;
+    if (!appContext) return;
     const { setIsLoading, showFlashMessage } = appContext;
 
     const fetchAllData = async () => {
@@ -75,9 +73,8 @@ const PatientReportPage: React.FC = () => {
         const token = localStorage.getItem('token');
         const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
-        // Fetch patient summary and branding data in parallel
         const [summaryRes, brandingRes] = await Promise.all([
-          axios.get(`/api/patient-summary/${staffId}`, authHeaders),
+          axios.get(`/api/me/report-summary`, authHeaders),
           axios.get('/api/branding', authHeaders)
         ]);
 
@@ -86,7 +83,7 @@ const PatientReportPage: React.FC = () => {
 
       } catch (error) {
         console.error('Failed to fetch report data:', error);
-        showFlashMessage('Could not load report data.', 'error');
+        showFlashMessage('Could not load your report data.', 'error');
         setSummary(null);
         setBranding(null);
       } finally {
@@ -94,11 +91,13 @@ const PatientReportPage: React.FC = () => {
       }
     };
     fetchAllData();
-  }, [appContext, staffId]);
+  }, [appContext]);
 
   if (!globalFilterContext || !appContext) {
+    // Or return a loading spinner, an error message, etc.
     return <div>Loading context...</div>;
   }
+
   const { screeningYear, companySection } = globalFilterContext;
   const { showFlashMessage, setIsLoading } = appContext;
 
@@ -124,8 +123,6 @@ const PatientReportPage: React.FC = () => {
                 const imgWidth = pdfWidth;
                 const imgHeight = imgWidth / ratio;
 
-                // If the content is taller than the page, it will be scaled down.
-                // This logic assumes each captured canvas fits on one A4 page.
                 if (imgHeight > pdfHeight) {
                     console.warn("Content is taller than page, scaling might occur.");
                 }
@@ -133,14 +130,11 @@ const PatientReportPage: React.FC = () => {
                 pdfInstance.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             };
 
-            // Add first page
             addImageToPdf(canvas1, pdf);
-
-            // Add second page
             pdf.addPage();
             addImageToPdf(canvas2, pdf);
 
-            pdf.save(`patient-report-${summary.staff_id}.pdf`);
+            pdf.save(`my-medical-report.pdf`);
 
         } catch (err) {
             console.error("PDF generation failed:", err);
@@ -155,7 +149,8 @@ const PatientReportPage: React.FC = () => {
     setIsSending(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`/api/patient-report/email`, { staff_id: staffId }, {
+      // The backend endpoint uses the token to identify the user and their staff_id
+      await axios.post(`/api/patient-report/email`, { staff_id: summary.staff_id }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       showFlashMessage('Report has been sent successfully!', 'success');
@@ -181,14 +176,14 @@ const PatientReportPage: React.FC = () => {
       />
       <Controls>
         <EmailButton onClick={handleEmail} disabled={isSending}>
-          {isSending ? 'Sending...' : 'Email Report'}
+          {isSending ? 'Sending...' : 'Email My Report'}
         </EmailButton>
         <DownloadButton onClick={handleDownload} disabled={isSending}>
-          Download PDF
+          Download My Report
         </DownloadButton>
       </Controls>
     </PageContainer>
   );
 };
 
-export default PatientReportPage;
+export default MyReportPage;

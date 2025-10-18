@@ -75,6 +75,8 @@ class TemporaryAccessCode(db.Model):
     code = db.Column(db.String(50), unique=True, nullable=False)
     permission_id = db.Column(db.Integer, db.ForeignKey('permission.id'), nullable=False)
     permission = db.relationship('Permission')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Can be null for general codes
+    user = db.relationship('User', backref='temp_codes')
     expiration = db.Column(db.DateTime, nullable=False)
     use_type = db.Column(db.String(20), nullable=False, default='single-use') # 'single-use' or 'multi-use'
     times_used = db.Column(db.Integer, default=0)
@@ -118,6 +120,10 @@ class Patient(db.Model):
     spirometry = db.relationship('Spirometry', back_populates='patient', uselist=False, cascade="all, delete-orphan")
     audiometry = db.relationship('Audiometry', back_populates='patient', uselist=False, cascade="all, delete-orphan")
     # This is the comprehensive bio-data table
+
+    # Link to the User model for account claiming
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, unique=True)
+    user = db.relationship('User', backref=db.backref('patient', uselist=False))
 
     def __repr__(self):
         return f'<Patient {self.first_name} {self.last_name}>'
@@ -163,6 +169,9 @@ class Consultation(db.Model):
     comment_two = db.Column(db.Text)
     comment_three = db.Column(db.Text)
     comment_four = db.Column(db.Text)
+
+    # Timestamp for the first director review
+    director_review_timestamp = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f'<Consultation for Patient {self.patient_id}>'
@@ -302,3 +311,18 @@ class Message(db.Model):
 
     conversation = db.relationship('Conversation', back_populates='messages')
     sender = db.relationship('User', backref='sent_messages')
+
+class Branding(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    clinic_name = db.Column(db.String(100), nullable=False, default='Legit HealthCare Services Ltd')
+    logo_light = db.Column(db.String(255), nullable=True)
+    logo_dark = db.Column(db.String(255), nullable=True)
+    logo_home = db.Column(db.String(255), nullable=True)
+    report_header = db.Column(db.String(255), nullable=True)
+    report_signature = db.Column(db.String(255), nullable=True)
+    report_footer = db.Column(db.String(255), nullable=True)
+    doctor_name = db.Column(db.String(100), nullable=True, default='Dr. Anyanwu Ugochukwu D. FMCPath')
+    doctor_title = db.Column(db.String(100), nullable=True, default='Consultant in Charge')
+
+    def __repr__(self):
+        return f'<Branding {self.clinic_name}>'

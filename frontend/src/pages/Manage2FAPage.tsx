@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { PrimaryButton } from '../components/common/Button';
+import { useApp } from '../contexts/AppContext';
+import { Input } from '../components/common/Input';
+import { Button } from '../components/common/Button';
 
 const PageContainer = styled.div`
-  padding: 2rem;
+  padding: ${({ theme }) => theme.spacing.lg};
+  max-width: 600px;
+  margin: auto;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
 `;
-
 
 const Section = styled.div`
   margin-top: 2rem;
@@ -14,14 +20,22 @@ const Section = styled.div`
   border-top: 1px solid ${({ theme }) => theme.cardBorder};
 `;
 
+const QRForm = styled.form`
+    display: flex;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing.md};
+    margin-top: ${({ theme }) => theme.spacing.md};
+    max-width: 300px;
+`;
+
 const Manage2FAPage: React.FC = () => {
+  const { showFlashMessage, setIsLoading } = useApp();
   const [isEnabled, setIsEnabled] = useState(false);
   const [qrCode, setQrCode] = useState('');
   const [otp, setOtp] = useState('');
+  const [loadingStatus, setLoadingStatus] = useState(true);
 
-  // Check current 2FA status on load
-  useEffect(() => {
-    const checkStatus = async () => {
+  const checkStatus = async () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('/api/2fa/status', {
@@ -30,74 +44,95 @@ const Manage2FAPage: React.FC = () => {
         setIsEnabled(response.data.enabled);
       } catch (error) {
         console.error('Failed to fetch 2FA status', error);
+        showFlashMessage('Failed to fetch 2FA status.', 'error');
+      } finally {
+        setLoadingStatus(false);
       }
     };
+
+  useEffect(() => {
     checkStatus();
   }, []);
 
   const handleEnable = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/api/2fa/enable', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQrCode(response.data.qr_code_url);
+      showFlashMessage('Scan the QR code with your authenticator app.', 'info');
     } catch (error) {
-      alert('Failed to start 2FA setup.');
+      showFlashMessage('Failed to start 2FA setup.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/2fa/verify', { otp }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('2FA enabled successfully!');
+      showFlashMessage('2FA enabled successfully!', 'success');
       setIsEnabled(true);
       setQrCode('');
     } catch (error) {
-      alert('Invalid OTP. Please try again.');
+      showFlashMessage('Invalid OTP. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDisable = async () => {
     if (window.confirm('Are you sure you want to disable 2FA?')) {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
         await axios.post('/api/2fa/disable', {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        alert('2FA disabled successfully.');
+        showFlashMessage('2FA disabled successfully.', 'success');
         setIsEnabled(false);
       } catch (error) {
-        alert('Failed to disable 2FA.');
+        showFlashMessage('Failed to disable 2FA.', 'error');
+      } finally {
+        setIsLoading(false);
       }
     }
   };
+
+  if (loadingStatus) {
+    return <PageContainer><p>Loading 2FA status...</p></PageContainer>;
+  }
 
   return (
     <PageContainer>
       {isEnabled ? (
         <div>
-          <p>Two-factor authentication is currently <strong>enabled</strong>.</p>
-          <PrimaryButton onClick={handleDisable}>Disable 2FA</PrimaryButton>
+          <h3>Two-Factor Authentication is ON</h3>
+          <p>Your account is secured with two-factor authentication.</p>
+          <Button onClick={handleDisable} style={{backgroundColor: '#dc3545'}}>Disable 2FA</Button>
         </div>
       ) : (
         <div>
-          <p>Two-factor authentication is currently <strong>disabled</strong>.</p>
-          <PrimaryButton onClick={handleEnable}>Enable 2FA</PrimaryButton>
+          <h3>Two-Factor Authentication is OFF</h3>
+          <p>Add an extra layer of security to your account.</p>
+          <Button onClick={handleEnable}>Enable 2FA</Button>
 
           {qrCode && (
             <Section>
-              <h3>Scan this QR Code</h3>
+              <h4>Scan this QR Code</h4>
               <p>Scan the image below with your authenticator app, then enter the code to verify.</p>
               <img src={qrCode} alt="QR Code" />
-              <form onSubmit={handleVerify}>
-                <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter OTP" required />
-                <PrimaryButton type="submit">Verify & Enable</PrimaryButton>
-              </form>
+              <QRForm onSubmit={handleVerify}>
+                <Input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Enter OTP" required />
+                <Button type="submit">Verify & Enable</Button>
+              </QRForm>
             </Section>
           )}
         </div>

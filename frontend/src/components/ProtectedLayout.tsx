@@ -1,22 +1,25 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import SideNav from './SideNav';
 import Header from './Header';
 
 const AppLayout = styled.div`
   display: flex;
+  background-color: ${({ theme }) => theme.background};
 `;
 
 const MainWrapper = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: 240px; // Same as SideNav width
+  height: 100vh;
 `;
 
 const ContentContainer = styled.main`
   flex: 1;
-  padding: 2rem;
+  overflow-y: auto; // Allow content to scroll independently
 `;
 
 interface ProtectedLayoutProps {
@@ -25,13 +28,10 @@ interface ProtectedLayoutProps {
 }
 
 const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ toggleTheme, theme }) => {
-  const location = useLocation();
-  const showNav = location.pathname !== '/dashboard';
-
   return (
     <AppLayout>
-      {showNav && <SideNav />}
-      <MainWrapper style={{ marginLeft: showNav ? '240px' : '0' }}>
+      <SideNav />
+      <MainWrapper>
         <Header toggleTheme={toggleTheme} theme={theme} />
         <ContentContainer>
           <Outlet />
