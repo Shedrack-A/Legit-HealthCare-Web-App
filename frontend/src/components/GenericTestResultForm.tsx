@@ -121,19 +121,21 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({
   const runCalculations = useCallback(
     (data: any, changedField: string) => {
       if (!calculations) return data;
-
-      let newData = { ...data };
-      let needsRecalculating = true;
-
-      while (needsRecalculating) {
-        needsRecalculating = false;
+      const newData = { ...data };
+      const calculationQueue: string[] = [changedField];
+      const processedFields = new Set<string>();
+      while (calculationQueue.length > 0) {
+        const currentField = calculationQueue.shift()!;
+        if (processedFields.has(currentField)) {
+          continue;
+        }
+        processedFields.add(currentField);
         calculations.forEach((rule) => {
-          if (rule.dependencies.includes(changedField)) {
+          if (rule.dependencies.includes(currentField)) {
             const result = rule.calculate(newData);
             if (newData[rule.target] !== result) {
-              newData = { ...newData, [rule.target]: result };
-              changedField = rule.target;
-              needsRecalculating = true;
+              newData[rule.target] = result;
+              calculationQueue.push(rule.target);
             }
           }
         });

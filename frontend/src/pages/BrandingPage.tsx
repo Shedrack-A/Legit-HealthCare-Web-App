@@ -1,60 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { Button } from '../components/common/Button';
+import { Input } from '../components/common/Input';
+import { useApp } from '../contexts/AppContext';
 
 const PageContainer = styled.div`
-  padding: 2rem;
-  max-width: 800px;
-  margin: auto;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: ${({ theme }) => theme.spacing.lg};
+`;
+
+const Card = styled.div`
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
+`;
+
+const CardTitle = styled.h2`
+  margin-top: 0;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  font-size: ${({ theme }) => theme.fontSizes.large};
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: ${({ theme }) => theme.spacing.xs};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
 const Label = styled.label`
-  font-weight: bold;
-  color: ${({ theme }) => theme.text};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
-const Input = styled.input`
-  padding: 0.8rem;
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 4px;
-  background-color: ${({ theme }) => theme.cardBg};
-  color: ${({ theme }) => theme.text};
+const FileInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 const FileInput = styled.input`
-  padding: 0.8rem;
-`;
-
-const Button = styled.button`
-  padding: 1rem;
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
+  /* Basic styling, can be improved */
 `;
 
 const PreviewImage = styled.img`
@@ -82,10 +80,11 @@ const BrandingPage: React.FC = () => {
     report_signature: '',
     report_footer: '',
   });
-  const [loading, setLoading] = useState(true);
+  const { showFlashMessage, setIsLoading, isLoading } = useApp();
 
   useEffect(() => {
     const fetchBranding = async () => {
+      setIsLoading(true);
       try {
         const { data } = await axios.get('/api/branding');
         setClinicName(data.clinic_name);
@@ -107,15 +106,17 @@ const BrandingPage: React.FC = () => {
         setDoctorTitle(data.doctor_title || '');
       } catch (error) {
         console.error('Failed to fetch branding settings:', error);
+        showFlashMessage('Failed to load branding settings.', 'error');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     fetchBranding();
-  }, []);
+  }, [setIsLoading, showFlashMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     const formData = new FormData();
     formData.append('clinic_name', clinicName);
     formData.append('doctor_name', doctorName);
@@ -135,12 +136,12 @@ const BrandingPage: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      alert('Branding updated successfully!');
-      // Optionally, refresh previews
-      window.location.reload();
+      showFlashMessage('Branding updated successfully!', 'success');
     } catch (error) {
       console.error('Failed to update branding:', error);
-      alert('Failed to update branding.');
+      showFlashMessage('Failed to update branding.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -156,7 +157,7 @@ const BrandingPage: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <PageContainer>
         <p>Loading...</p>
@@ -168,130 +169,158 @@ const BrandingPage: React.FC = () => {
     <PageContainer>
       <PageTitle>Branding Management</PageTitle>
       <Form onSubmit={handleSubmit}>
-        <FormGroup>
-          <Label htmlFor="clinicName">Clinic Name</Label>
-          <Input
-            id="clinicName"
-            type="text"
-            value={clinicName}
-            onChange={(e) => setClinicName(e.target.value)}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="doctorName">Doctor's Name</Label>
-          <Input
-            id="doctorName"
-            type="text"
-            value={doctorName}
-            onChange={(e) => setDoctorName(e.target.value)}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="doctorTitle">Doctor's Title</Label>
-          <Input
-            id="doctorTitle"
-            type="text"
-            value={doctorTitle}
-            onChange={(e) => setDoctorTitle(e.target.value)}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="logoLight">Logo (Light Theme)</Label>
-          <FileInput
-            id="logoLight"
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, setLogoLight, 'logo_light')}
-          />
-          {previews.logo_light && (
-            <PreviewImage src={previews.logo_light} alt="Light logo preview" />
-          )}
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="logoDark">Logo (Dark Theme)</Label>
-          <FileInput
-            id="logoDark"
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, setLogoDark, 'logo_dark')}
-          />
-          {previews.logo_dark && (
-            <PreviewImage src={previews.logo_dark} alt="Dark logo preview" />
-          )}
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="logoHome">Logo (Home Page)</Label>
-          <FileInput
-            id="logoHome"
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, setLogoHome, 'logo_home')}
-          />
-          {previews.logo_home && (
-            <PreviewImage src={previews.logo_home} alt="Home logo preview" />
-          )}
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="reportHeader">Report Header Image</Label>
-          <FileInput
-            id="reportHeader"
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              handleFileChange(e, setReportHeader, 'report_header')
-            }
-          />
-          {previews.report_header && (
-            <PreviewImage
-              src={previews.report_header}
-              alt="Report header preview"
+        <Card>
+          <CardTitle>General Information</CardTitle>
+          <FormGroup>
+            <Label htmlFor="clinicName">Clinic Name</Label>
+            <Input
+              id="clinicName"
+              type="text"
+              value={clinicName}
+              onChange={(e) => setClinicName(e.target.value)}
             />
-          )}
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="reportSignature">Report Signature Image</Label>
-          <FileInput
-            id="reportSignature"
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              handleFileChange(e, setReportSignature, 'report_signature')
-            }
-          />
-          {previews.report_signature && (
-            <PreviewImage
-              src={previews.report_signature}
-              alt="Report signature preview"
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="doctorName">Doctor's Name</Label>
+            <Input
+              id="doctorName"
+              type="text"
+              value={doctorName}
+              onChange={(e) => setDoctorName(e.target.value)}
             />
-          )}
-        </FormGroup>
-
-        <FormGroup>
-          <Label htmlFor="reportFooter">Report Footer Image</Label>
-          <FileInput
-            id="reportFooter"
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              handleFileChange(e, setReportFooter, 'report_footer')
-            }
-          />
-          {previews.report_footer && (
-            <PreviewImage
-              src={previews.report_footer}
-              alt="Report footer preview"
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="doctorTitle">Doctor's Title</Label>
+            <Input
+              id="doctorTitle"
+              type="text"
+              value={doctorTitle}
+              onChange={(e) => setDoctorTitle(e.target.value)}
             />
-          )}
-        </FormGroup>
+          </FormGroup>
+        </Card>
 
-        <Button type="submit">Save Changes</Button>
+        <Card>
+          <CardTitle>Logos</CardTitle>
+          <FormGroup>
+            <Label htmlFor="logoLight">Logo (Light Theme)</Label>
+            <FileInputContainer>
+              <FileInput
+                id="logoLight"
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileChange(e, setLogoLight, 'logo_light')
+                }
+              />
+              {previews.logo_light && (
+                <PreviewImage
+                  src={previews.logo_light}
+                  alt="Light logo preview"
+                />
+              )}
+            </FileInputContainer>
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="logoDark">Logo (Dark Theme)</Label>
+            <FileInputContainer>
+              <FileInput
+                id="logoDark"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, setLogoDark, 'logo_dark')}
+              />
+              {previews.logo_dark && (
+                <PreviewImage
+                  src={previews.logo_dark}
+                  alt="Dark logo preview"
+                />
+              )}
+            </FileInputContainer>
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="logoHome">Logo (Home Page)</Label>
+            <FileInputContainer>
+              <FileInput
+                id="logoHome"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, setLogoHome, 'logo_home')}
+              />
+              {previews.logo_home && (
+                <PreviewImage
+                  src={previews.logo_home}
+                  alt="Home logo preview"
+                />
+              )}
+            </FileInputContainer>
+          </FormGroup>
+        </Card>
+
+        <Card>
+          <CardTitle>Report Assets</CardTitle>
+          <FormGroup>
+            <Label htmlFor="reportHeader">Report Header Image</Label>
+            <FileInputContainer>
+              <FileInput
+                id="reportHeader"
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileChange(e, setReportHeader, 'report_header')
+                }
+              />
+              {previews.report_header && (
+                <PreviewImage
+                  src={previews.report_header}
+                  alt="Report header preview"
+                />
+              )}
+            </FileInputContainer>
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="reportSignature">Report Signature Image</Label>
+            <FileInputContainer>
+              <FileInput
+                id="reportSignature"
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileChange(e, setReportSignature, 'report_signature')
+                }
+              />
+              {previews.report_signature && (
+                <PreviewImage
+                  src={previews.report_signature}
+                  alt="Report signature preview"
+                />
+              )}
+            </FileInputContainer>
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="reportFooter">Report Footer Image</Label>
+            <FileInputContainer>
+              <FileInput
+                id="reportFooter"
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileChange(e, setReportFooter, 'report_footer')
+                }
+              />
+              {previews.report_footer && (
+                <PreviewImage
+                  src={previews.report_footer}
+                  alt="Report footer preview"
+                />
+              )}
+            </FileInputContainer>
+          </FormGroup>
+        </Card>
+
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : 'Save Changes'}
+        </Button>
       </Form>
     </PageContainer>
   );

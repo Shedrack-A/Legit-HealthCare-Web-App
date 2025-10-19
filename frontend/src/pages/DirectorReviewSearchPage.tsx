@@ -3,6 +3,11 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useGlobalFilter } from '../contexts/GlobalFilterContext';
+import { Search } from 'react-feather';
+
+const SearchIcon = styled(Search)`
+  color: ${({ theme }) => theme.textSecondary};
+`;
 
 // Reusing styled components from other pages for consistency
 const PageContainer = styled.div`
@@ -12,13 +17,26 @@ const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
   margin-bottom: 2rem;
 `;
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.2rem;
+
+const SearchInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.sm};
   margin-bottom: 2rem;
+`;
+
+const SearchInput = styled.input`
+  border: none;
+  background-color: transparent;
+  width: 100%;
+  font-size: 1.2rem;
+
+  &:focus {
+    outline: none;
+  }
 `;
 const ResultsList = styled.ul`
   list-style: none;
@@ -47,15 +65,6 @@ const PatientName = styled.h3`
   margin: 0;
   color: ${({ theme }) => theme.main};
 `;
-
-const generateYears = () => {
-  const currentYear = new Date().getFullYear();
-  const years = [];
-  for (let year = currentYear - 5; year <= currentYear + 10; year++) {
-    years.push(year);
-  }
-  return years;
-};
 
 interface PatientSearchResult {
   id: number;
@@ -102,12 +111,15 @@ const DirectorReviewSearchPage: React.FC = () => {
     <PageContainer>
       <PageTitle>Director's Review - Search Patient</PageTitle>
 
-      <SearchInput
-        type="text"
-        placeholder="Search by Staff ID to begin review..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+      <SearchInputContainer>
+        <SearchIcon size={20} />
+        <SearchInput
+          type="text"
+          placeholder="Search by Staff ID to begin review..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </SearchInputContainer>
 
       <ResultsList>
         {results.map((patient) => (

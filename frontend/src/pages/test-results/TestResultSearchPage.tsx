@@ -4,6 +4,11 @@ import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { TEST_TYPE_CONFIG } from '../../data/constants';
 import { useGlobalFilter } from '../../contexts/GlobalFilterContext';
+import { Search } from 'react-feather';
+
+const SearchIcon = styled(Search)`
+  color: ${({ theme }) => theme.textSecondary};
+`;
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -14,13 +19,25 @@ const PageTitle = styled.h1`
   margin-bottom: 2rem;
 `;
 
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.2rem;
+const SearchInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.sm};
   margin-bottom: 2rem;
+`;
+
+const SearchInput = styled.input`
+  border: none;
+  background-color: transparent;
+  width: 100%;
+  font-size: 1.2rem;
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 const ResultsList = styled.ul`
@@ -115,12 +132,15 @@ const TestResultSearchPage: React.FC = () => {
     <PageContainer>
       <PageTitle>{testConfig.name} - Search Patient</PageTitle>
 
-      <SearchInput
-        type="text"
-        placeholder="Search by Staff ID..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+      <SearchInputContainer>
+        <SearchIcon size={20} />
+        <SearchInput
+          type="text"
+          placeholder="Search by Staff ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </SearchInputContainer>
 
       <ResultsList>
         {results.map((patient) => (

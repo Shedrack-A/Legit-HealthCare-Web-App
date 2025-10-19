@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -59,7 +59,7 @@ const ViewRecordsPage: React.FC = () => {
   const { showFlashMessage, setIsLoading, isLoading } = useApp();
   const navigate = useNavigate();
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -78,11 +78,11 @@ const ViewRecordsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [companySection, screeningYear, setIsLoading, showFlashMessage]);
 
   useEffect(() => {
     fetchRecords();
-  }, [screeningYear, companySection]);
+  }, [fetchRecords]);
 
   const handleDelete = async (recordId: number) => {
     if (

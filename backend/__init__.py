@@ -112,4 +112,18 @@ def create_app(config_class='backend.config.Config'):
         db.session.commit()
         print(f"User '{username}' created and assigned the 'admin' role with all permissions.")
 
+    @app.before_request
+    def cleanup_old_audit_logs():
+        from .models import AuditLog, db
+        from datetime import datetime, timedelta
+
+        last_cleanup = app.config.get('LAST_AUDIT_CLEANUP')
+        if last_cleanup and last_cleanup.date() == datetime.utcnow().date():
+            return
+
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        AuditLog.query.filter(AuditLog.timestamp < thirty_days_ago).delete()
+        db.session.commit()
+        app.config['LAST_AUDIT_CLEANUP'] = datetime.utcnow()
+
     return app

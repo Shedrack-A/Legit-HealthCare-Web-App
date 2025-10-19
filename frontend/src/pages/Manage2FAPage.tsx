@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useApp } from '../contexts/AppContext';
@@ -7,16 +7,20 @@ import { Button } from '../components/common/Button';
 
 const PageContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
+`;
+
+const Card = styled.div`
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
   max-width: 600px;
   margin: auto;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: ${({ theme }) => theme.borderRadius};
-  border: 1px solid ${({ theme }) => theme.cardBorder};
 `;
 
 const Section = styled.div`
-  margin-top: 2rem;
-  padding-top: 2rem;
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  padding-top: ${({ theme }) => theme.spacing.lg};
   border-top: 1px solid ${({ theme }) => theme.cardBorder};
 `;
 
@@ -35,7 +39,7 @@ const Manage2FAPage: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [loadingStatus, setLoadingStatus] = useState(true);
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/2fa/status', {
@@ -48,11 +52,11 @@ const Manage2FAPage: React.FC = () => {
     } finally {
       setLoadingStatus(false);
     }
-  };
+  }, [showFlashMessage]);
 
   useEffect(() => {
     checkStatus();
-  }, []);
+  }, [checkStatus]);
 
   const handleEnable = async () => {
     setIsLoading(true);
@@ -121,52 +125,53 @@ const Manage2FAPage: React.FC = () => {
   if (loadingStatus) {
     return (
       <PageContainer>
-        <p>Loading 2FA status...</p>
+        <Card>
+          <p>Loading 2FA status...</p>
+        </Card>
       </PageContainer>
     );
   }
 
   return (
     <PageContainer>
-      {isEnabled ? (
-        <div>
-          <h3>Two-Factor Authentication is ON</h3>
-          <p>Your account is secured with two-factor authentication.</p>
-          <Button
-            onClick={handleDisable}
-            style={{ backgroundColor: '#dc3545' }}
-          >
-            Disable 2FA
-          </Button>
-        </div>
-      ) : (
-        <div>
-          <h3>Two-Factor Authentication is OFF</h3>
-          <p>Add an extra layer of security to your account.</p>
-          <Button onClick={handleEnable}>Enable 2FA</Button>
+      <Card>
+        {isEnabled ? (
+          <div>
+            <h3>Two-Factor Authentication is ON</h3>
+            <p>Your account is secured with two-factor authentication.</p>
+            <Button onClick={handleDisable} variant="danger">
+              Disable 2FA
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <h3>Two-Factor Authentication is OFF</h3>
+            <p>Add an extra layer of security to your account.</p>
+            <Button onClick={handleEnable}>Enable 2FA</Button>
 
-          {qrCode && (
-            <Section>
-              <h4>Scan this QR Code</h4>
-              <p>
-                Scan the image below with your authenticator app, then enter the
-                code to verify.
-              </p>
-              <img src={qrCode} alt="QR Code" />
-              <QRForm onSubmit={handleVerify}>
-                <Input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="Enter OTP"
-                  required
-                />
-                <Button type="submit">Verify & Enable</Button>
-              </QRForm>
-            </Section>
-          )}
-        </div>
-      )}
+            {qrCode && (
+              <Section>
+                <h4>Scan this QR Code</h4>
+                <p>
+                  Scan the image below with your authenticator app, then enter
+                  the code to verify.
+                </p>
+                <img src={qrCode} alt="QR Code" />
+                <QRForm onSubmit={handleVerify}>
+                  <Input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Enter OTP"
+                    required
+                  />
+                  <Button type="submit">Verify & Enable</Button>
+                </QRForm>
+              </Section>
+            )}
+          </div>
+        )}
+      </Card>
     </PageContainer>
   );
 };

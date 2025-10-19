@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  Home,
   UserPlus,
   Clipboard,
   Droplet,
@@ -10,7 +9,6 @@ import {
   FileText,
   Users,
   BookOpen,
-  Settings,
   MessageSquare,
   User as UserIcon,
   Key,

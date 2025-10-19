@@ -4,7 +4,6 @@ import axios from 'axios';
 import { Download } from 'react-feather';
 import { useApp } from '../contexts/AppContext';
 import { useGlobalFilter } from '../contexts/GlobalFilterContext';
-import { Link } from 'react-router-dom';
 
 const PageContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};

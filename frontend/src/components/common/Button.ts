@@ -1,7 +1,11 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
 
-export const Button = styled.button`
+interface ButtonProps {
+  variant?: 'danger';
+}
+
+export const Button = styled.button<ButtonProps>`
   padding: ${({ theme }) => theme.inputPadding};
   background-color: ${({ theme }) => theme.main};
   color: white;
@@ -19,6 +23,15 @@ export const Button = styled.button`
     background-color: ${({ theme }) => theme.disabled};
     cursor: not-allowed;
   }
+
+  ${({ variant, theme }) =>
+    variant === 'danger' &&
+    css`
+      background-color: ${theme.error};
+      &:hover {
+        background-color: #c82333;
+      }
+    `}
 `;
 
 export const PrimaryButton = styled(Button)`

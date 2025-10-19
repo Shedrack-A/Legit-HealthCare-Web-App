@@ -6,6 +6,7 @@ import { useApp } from '../contexts/AppContext';
 import { Input } from './common/Input';
 import { Button } from './common/Button';
 import { FormSelect } from './common/FormSelect';
+import { Search } from 'react-feather';
 
 const FormContainer = styled.form`
   display: grid;
@@ -28,14 +29,38 @@ const FormLabel = styled.label`
   font-weight: 600;
   font-size: ${({ theme }) => theme.fontSizes.small};
 
+import { Search } from 'react-feather';
+
   &.required::after {
     content: ' *';
     color: red;
   }
 `;
 
+const SearchIcon = styled(Search)`
+  color: ${({ theme }) => theme.main};
+`;
+
 const SearchContainer = styled.div`
   grid-column: 1 / -1;
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  align-items: center;
+  border: 1px solid ${({ theme }) => theme.main};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.sm};
+  background-color: ${({ theme }) => theme.cardBg};
+`;
+
+const SearchInput = styled(Input)`
+  border: none;
+  background-color: transparent;
+  flex-grow: 1;
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 const SubmitButton = styled(Button)`
@@ -159,7 +184,8 @@ const PatientRegistrationForm: React.FC<PatientRegistrationFormProps> = ({
   return (
     <FormContainer onSubmit={handleSubmit}>
       <SearchContainer>
-        <Input
+        <SearchIcon />
+        <SearchInput
           type="text"
           placeholder="Search by Staff ID to pre-fill..."
           value={searchId}
@@ -178,7 +204,7 @@ const PatientRegistrationForm: React.FC<PatientRegistrationFormProps> = ({
         />
       </FormGroup>
       <FormGroup>
-        <FormLabel className="required">Patient ID (for this year)</FormLabel>
+        <FormLabel className="required">Patient ID</FormLabel>
         <Input
           type="text"
           name="patient_id_for_year"

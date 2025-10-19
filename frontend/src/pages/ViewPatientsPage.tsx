@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -55,7 +55,7 @@ const ViewPatientsPage: React.FC = () => {
   const { showFlashMessage, setIsLoading, isLoading } = useApp();
   const navigate = useNavigate();
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -69,11 +69,11 @@ const ViewPatientsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [setIsLoading, showFlashMessage]);
 
   useEffect(() => {
     fetchPatients();
-  }, []);
+  }, [fetchPatients]);
 
   const handleDelete = async (staffId: string) => {
     if (

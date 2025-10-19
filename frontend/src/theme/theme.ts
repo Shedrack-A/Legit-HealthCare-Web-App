@@ -32,6 +32,7 @@ export const lightTheme = {
   cardBg: '#ffffff',
   cardBorder: '#e0e0e0',
   cardHover: '#f5f5f5',
+  error: '#dc3545',
 };
 
 export const darkTheme = {
@@ -43,4 +44,5 @@ export const darkTheme = {
   cardBg: '#252525',
   cardBorder: '#383838',
   cardHover: '#303030',
+  error: '#e4606d',
 };

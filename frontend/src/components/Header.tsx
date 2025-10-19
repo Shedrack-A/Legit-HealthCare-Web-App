@@ -222,59 +222,67 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
   return (
     <HeaderContainer>
       <HeaderLeft>
-        {showBackButton && (
+        {user && showBackButton && (
           <BackButton onClick={() => navigate(-1)} title="Go Back">
             <ArrowLeft size={20} />
           </BackButton>
         )}
-        <PageTitle>{getPageTitle()}</PageTitle>
+        {user && <PageTitle>{getPageTitle()}</PageTitle>}
       </HeaderLeft>
       <HeaderRight>
-        <FormSelect
-          value={companySection}
-          onChange={(e) => setCompanySection(e.target.value)}
-        >
-          <option value="DCP">DCP</option>
-          <option value="DCT">DCT</option>
-        </FormSelect>
-        <FormSelect
-          value={screeningYear}
-          onChange={(e) => setScreeningYear(parseInt(e.target.value))}
-        >
-          {screeningYears.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </FormSelect>
+        {user && (
+          <>
+            <FormSelect
+              value={companySection}
+              onChange={(e) => setCompanySection(e.target.value)}
+            >
+              <option value="DCP">DCP</option>
+              <option value="DCT">DCT</option>
+            </FormSelect>
+            <FormSelect
+              value={screeningYear}
+              onChange={(e) => setScreeningYear(parseInt(e.target.value))}
+            >
+              {screeningYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </FormSelect>
+          </>
+        )}
         <HeaderButton onClick={toggleTheme} title="Toggle Theme">
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </HeaderButton>
-        <HeaderButton>
-          <Bell size={18} />
-        </HeaderButton>
-        <ProfileDropdownContainer ref={dropdownRef}>
-          <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
-            <User size={18} />
-            <span>{user?.firstName}</span>
-          </ProfileButton>
-          {dropdownOpen && (
-            <DropdownMenu>
-              <DropdownItem to="/my-report">
-                <FileText size={16} />
-                <span>My Report</span>
-              </DropdownItem>
-              <DropdownItem to="/manage-account">
-                <Settings size={16} />
-                <span>Manage Account</span>
-              </DropdownItem>
-              <DropdownButton onClick={logout}>
-                <LogOut size={16} />
-                <span>Logout</span>
-              </DropdownButton>
-            </DropdownMenu>
-          )}
-        </ProfileDropdownContainer>
+        {user && (
+          <>
+            <HeaderButton>
+              <Bell size={18} />
+            </HeaderButton>
+            <ProfileDropdownContainer ref={dropdownRef}>
+              <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
+                <User size={18} />
+                <span>{user?.firstName}</span>
+              </ProfileButton>
+              {dropdownOpen && (
+                <DropdownMenu>
+                  <DropdownItem to="/my-report">
+                    <FileText size={16} />
+                    <span>My Report</span>
+                  </DropdownItem>
+                  <DropdownItem to="/manage-account">
+                    <Settings size={16} />
+                    <span>Manage Account</span>
+                  </DropdownItem>
+                  <DropdownButton onClick={logout}>
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </DropdownButton>
+                </DropdownMenu>
+              )}
+            </ProfileDropdownContainer>
+          </>
+        )}
       </HeaderRight>
     </HeaderContainer>
   );

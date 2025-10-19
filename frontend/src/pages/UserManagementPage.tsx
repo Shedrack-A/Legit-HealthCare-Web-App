@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Edit } from 'react-feather';
 import { useApp } from '../contexts/AppContext';
-import { Button } from '../components/common/Button';
 
 const PageContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
@@ -74,7 +73,7 @@ const UserManagementPage: React.FC = () => {
   const { showFlashMessage, setIsLoading, isLoading } = useApp();
   const navigate = useNavigate();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -94,11 +93,11 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [setIsLoading, showFlashMessage]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleRoleChange = async (userId: number, roleId: number) => {
     setIsLoading(true);

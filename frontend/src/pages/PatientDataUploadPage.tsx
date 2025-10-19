@@ -1,67 +1,85 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { Button } from '../components/common/Button';
+import { useApp } from '../contexts/AppContext';
+import { UploadCloud } from 'react-feather';
+
+const UploadCloudIcon = styled(UploadCloud)`
+  color: ${({ theme }) => theme.main};
+`;
 
 const PageContainer = styled.div`
-  padding: 2rem;
-  max-width: 800px;
-  margin: auto;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
-const UploadContainer = styled.div`
+const UploadCard = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
-  padding: 2rem;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
+  max-width: 800px;
+  margin: auto;
 `;
 
 const Instructions = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   line-height: 1.6;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.textSecondary};
 
   h3 {
-    margin-bottom: 1rem;
-    color: ${({ theme }) => theme.accent};
+    color: ${({ theme }) => theme.text};
+    margin-bottom: ${({ theme }) => theme.spacing.md};
   }
 
   ul {
     padding-left: 20px;
+    margin-top: ${({ theme }) => theme.spacing.sm};
+  }
+
+  strong {
+    color: ${({ theme }) => theme.main};
+  }
+`;
+
+const FileInputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const FileInputLabel = styled.label`
+  border: 2px dashed ${({ theme }) => theme.cardBorder};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.xl};
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.main};
   }
 `;
 
 const FileInput = styled.input`
-  display: block;
-  margin-bottom: 1rem;
+  display: none;
 `;
 
-const Button = styled.button`
-  padding: 1rem;
-  background-color: ${({ theme }) => theme.main};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-
-  &:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
+const FileName = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  font-weight: 600;
 `;
 
 const PatientDataUploadPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const { showFlashMessage, setIsLoading, isLoading } = useApp();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -71,11 +89,11 @@ const PatientDataUploadPage: React.FC = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      alert('Please select a file first.');
+      showFlashMessage('Please select a file first.', 'error');
       return;
     }
 
-    setUploading(true);
+    setIsLoading(true);
     const formData = new FormData();
     formData.append('file', file);
 
@@ -87,45 +105,60 @@ const PatientDataUploadPage: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      alert(response.data.message);
-    } catch (error) {
+      showFlashMessage(response.data.message, 'success');
+      setFile(null); // Clear file after successful upload
+    } catch (error: any) {
       console.error('File upload failed:', error);
-      alert('File upload failed. Please check the console for details.');
+      const errorMessage =
+        error.response?.data?.message ||
+        'File upload failed. Please check the console for details.';
+      showFlashMessage(errorMessage, 'error');
     } finally {
-      setUploading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <PageContainer>
       <PageTitle>Upload Patient Bio-Data</PageTitle>
-      <UploadContainer>
+      <UploadCard>
         <Instructions>
           <h3>Upload Instructions</h3>
           <p>
-            Please upload an Excel file (.xlsx) with the patient data. The file
-            should have the following columns in this specific order:
+            Please upload an Excel file (.xlsx) with patient data. The file must
+            contain the following headers: <strong>Staff ID</strong>,{' '}
+            <strong>First Name</strong>, and <strong>Last Name</strong>.
           </p>
-          <ul>
-            <li>Staff ID</li>
-            <li>First Name</li>
-            <li>Middle Name (can be empty)</li>
-            <li>Last Name</li>
-            <li>Department</li>
-            <li>Gender</li>
-            <li>Date of Birth (YYYY-MM-DD)</li>
-            <li>Contact Phone</li>
-            <li>Email Address</li>
-            <li>Race</li>
-            <li>Nationality</li>
-          </ul>
-          <p>The first row should be the header row and will be ignored.</p>
+          <p>
+            The following columns are optional and will be processed if present,
+            in this order:
+            <ul>
+              <li>Department</li>
+              <li>Gender</li>
+              <li>Date of Birth</li>
+              <li>Contact Phone</li>
+              <li>Email Address</li>
+              <li>Race</li>
+              <li>Nationality</li>
+            </ul>
+            Any of these details can be left empty and updated manually later.
+          </p>
         </Instructions>
-        <FileInput type="file" accept=".xlsx" onChange={handleFileChange} />
-        <Button onClick={handleUpload} disabled={!file || uploading}>
-          {uploading ? 'Uploading...' : 'Upload File'}
-        </Button>
-      </UploadContainer>
+
+        <FileInputContainer>
+          <FileInputLabel>
+            <FileInput type="file" accept=".xlsx" onChange={handleFileChange} />
+            <UploadCloudIcon size={48} />
+            <p>Click to browse or drag & drop a file here.</p>
+          </FileInputLabel>
+
+          {file && <FileName>Selected file: {file.name}</FileName>}
+
+          <Button onClick={handleUpload} disabled={!file || isLoading}>
+            {isLoading ? 'Uploading...' : 'Upload File'}
+          </Button>
+        </FileInputContainer>
+      </UploadCard>
     </PageContainer>
   );
 };
