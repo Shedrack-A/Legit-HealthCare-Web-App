@@ -16,6 +16,8 @@ import {
 } from '../contexts/GlobalFilterContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import axios from 'axios';
+import { formatDistanceToNow } from 'date-fns';
 
 const HeaderContainer = styled.header`
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.lg}`};
@@ -63,6 +65,7 @@ const HeaderButton = styled.button`
   border-radius: ${({ theme }) => theme.borderRadius};
   height: 36px;
   min-width: 36px;
+  position: relative;
 
   &:hover {
     background-color: ${({ theme }) => theme.background};
@@ -105,6 +108,31 @@ const DropdownMenu = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
+const NotificationDropdown = styled(DropdownMenu)`
+  width: 350px;
+  padding: 0;
+`;
+
+const NotificationItem = styled.div<{ isRead: boolean }>`
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-bottom: 1px solid ${({ theme }) => theme.cardBorder};
+  background-color: ${({ isRead, theme }) => (isRead ? 'transparent' : theme.accent + '22')};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  p {
+    margin: 0;
+    font-size: ${({ theme }) => theme.fontSizes.small};
+  }
+
+  span {
+    font-size: ${({ theme }) => theme.fontSizes.small};
+    color: ${({ theme }) => theme.textSecondary};
+  }
+`;
+
 const DropdownItem = styled(Link)`
   display: flex;
   align-items: center;
@@ -142,6 +170,21 @@ const DropdownButton = styled.button`
   }
 `;
 
+const Badge = styled.span`
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: ${({ theme }) => theme.error};
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 interface HeaderProps {
   toggleTheme: () => void;
   theme: string;
@@ -153,8 +196,44 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (user) {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/notifications', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setNotifications(response.data);
+      }
+    };
+    fetchNotifications();
+
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const handleNotificationClick = async (notification: any) => {
+    if (!notification.is_read) {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/notifications/${notification.id}/read`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(notifications.map(n => n.id === notification.id ? { ...n, is_read: true } : n));
+    }
+    if (notification.url) {
+      navigate(notification.url);
+    }
+    setNotificationDropdownOpen(false);
+  };
 
   const pageTitles: { [key: string]: string } = {
     '/dashboard': 'Dashboard',
@@ -209,10 +288,16 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
       ) {
-        setDropdownOpen(false);
+        setProfileDropdownOpen(false);
+      }
+      if (
+        notificationDropdownRef.current &&
+        !notificationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setNotificationDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -256,15 +341,34 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
         </HeaderButton>
         {user && (
           <>
-            <HeaderButton>
-              <Bell size={18} />
-            </HeaderButton>
-            <ProfileDropdownContainer ref={dropdownRef}>
-              <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
+            <ProfileDropdownContainer ref={notificationDropdownRef}>
+              <HeaderButton onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}>
+                {unreadCount > 0 && <Badge>{unreadCount}</Badge>}
+                <Bell size={18} />
+              </HeaderButton>
+              {notificationDropdownOpen && (
+                <NotificationDropdown>
+                  {notifications.length > 0 ? (
+                    notifications.map(n => (
+                      <NotificationItem key={n.id} isRead={n.is_read} onClick={() => handleNotificationClick(n)}>
+                        <p>{n.content}</p>
+                        <span>{formatDistanceToNow(new Date(n.timestamp))} ago</span>
+                      </NotificationItem>
+                    ))
+                  ) : (
+                    <NotificationItem isRead>
+                      <p>No new notifications</p>
+                    </NotificationItem>
+                  )}
+                </NotificationDropdown>
+              )}
+            </ProfileDropdownContainer>
+            <ProfileDropdownContainer ref={profileDropdownRef}>
+              <ProfileButton onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}>
                 <User size={18} />
                 <span>{user?.firstName}</span>
               </ProfileButton>
-              {dropdownOpen && (
+              {profileDropdownOpen && (
                 <DropdownMenu>
                   <DropdownItem to="/my-report">
                     <FileText size={16} />

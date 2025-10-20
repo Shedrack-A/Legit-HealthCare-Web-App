@@ -1193,6 +1193,9 @@ def set_email_config(current_user):
     return jsonify({'message': 'Email configuration saved successfully.'})
 
 
+from . import socketio
+from flask_socketio import join_room, leave_room, send
+
 # --- Messaging Routes ---
 @bp.route('/conversations', methods=['GET'])
 @token_required()
@@ -1221,36 +1224,38 @@ def get_messages(current_user, conversation_id):
         'timestamp': m.timestamp.isoformat()
     } for m in messages])
 
-@bp.route('/messages', methods=['POST'])
-@token_required()
-def send_message(current_user):
-    data = request.get_json()
+@socketio.on('join')
+def on_join(data):
+    username = data['username']
+    room = data['room']
+    join_room(room)
+    send(username + ' has entered the room.', to=room)
+
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room)
+    send(username + ' has left the room.', to=room)
+
+@socketio.on('send_message')
+def handle_send_message(data):
     conversation_id = data.get('conversation_id')
     content = data.get('content')
-    recipient_id = data.get('recipient_id') # For starting a new 1-on-1 chat
+    token = data.get('token')
 
-    if not content:
-        return jsonify({'message': 'Message content is required'}), 400
+    if not all([conversation_id, content, token]):
+        return
 
-    if conversation_id:
-        conversation = Conversation.query.get_or_404(conversation_id)
-        if current_user not in conversation.participants:
-            return jsonify({'message': 'Not a participant of this conversation'}), 403
-    elif recipient_id:
-        recipient = User.query.get(recipient_id)
-        if not recipient:
-            return jsonify({'message': 'Recipient not found'}), 404
+    try:
+        token_data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS266"])
+        current_user = User.query.get(token_data['user_id'])
+    except:
+        return
 
-        # Check if a 1-on-1 conversation already exists
-        conversation = Conversation.query.filter(Conversation.is_group == False) \
-            .filter(Conversation.participants.contains(current_user)) \
-            .filter(Conversation.participants.contains(recipient)).first()
-
-        if not conversation:
-            conversation = Conversation(participants=[current_user, recipient])
-            db.session.add(conversation)
-    else:
-        return jsonify({'message': 'conversation_id or recipient_id is required'}), 400
+    conversation = Conversation.query.get(conversation_id)
+    if not conversation or current_user not in conversation.participants:
+        return
 
     new_message = Message(
         conversation_id=conversation.id,
@@ -1259,7 +1264,82 @@ def send_message(current_user):
     )
     db.session.add(new_message)
     db.session.commit()
-    return jsonify({'message': 'Message sent successfully.'}), 201
+
+    message_data = {
+        'id': new_message.id,
+        'sender_id': new_message.sender_id,
+        'sender_username': current_user.username,
+        'content': new_message.content,
+        'timestamp': new_message.timestamp.isoformat()
+    }
+    socketio.emit('new_message', message_data, to=f'conversation_{conversation_id}')
+
+# Notification Routes
+@bp.route('/notifications', methods=['GET'])
+@token_required()
+def get_notifications(current_user):
+    notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
+    return jsonify([{
+        'id': n.id,
+        'content': n.content,
+        'url': n.url,
+        'is_read': n.is_read,
+        'timestamp': n.timestamp.isoformat()
+    } for n in notifications])
+
+@bp.route('/notifications/<int:notification_id>/read', methods=['POST'])
+@token_required()
+def mark_notification_as_read(current_user, notification_id):
+    notification = Notification.query.get_or_404(notification_id)
+    if notification.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized'}), 403
+    notification.is_read = True
+    db.session.commit()
+    return jsonify({'message': 'Notification marked as read.'})
+
+# Patient Queue Routes
+@bp.route('/queue/stats', methods=['GET'])
+@token_required()
+def get_queue_stats(current_user):
+    screening_year = request.args.get('screening_year', type=int)
+    company_section = request.args.get('company_section')
+
+    if not screening_year or not company_section:
+        return jsonify({'message': 'screening_year and company_section are required'}), 400
+
+    today = datetime.utcnow().date()
+    base_query = db.session.query(Patient.id).join(
+        ScreeningBioData, Patient.id == ScreeningBioData.patient_comprehensive_id
+    ).filter(
+        ScreeningBioData.screening_year == screening_year,
+        ScreeningBioData.company_section == company_section,
+        func.date(ScreeningBioData.registered_at) == today
+    )
+
+    consultation_queue = base_query.outerjoin(Consultation).filter(Consultation.id == None).count()
+    audiometry_queue = base_query.outerjoin(Audiometry).filter(Audiometry.id == None).count()
+    spirometry_queue = base_query.outerjoin(Spirometry).filter(Spirometry.id == None).count()
+    ecg_queue = base_query.outerjoin(ECG).filter(ECG.id == None).count()
+
+    # This is a simplified implementation. A more robust solution would reset daily.
+    # For now, we are just counting patients who haven't had the procedure recorded.
+
+    return jsonify({
+        'consultation': consultation_queue,
+        'audiometry': audiometry_queue,
+        'spirometry': spirometry_queue,
+        'ecg': ecg_queue
+    })
+
+@bp.route('/messages/unread-count', methods=['GET'])
+@token_required()
+def get_unread_message_count(current_user):
+    count = db.session.query(func.count(Message.id)).join(Conversation).filter(
+        Conversation.participants.contains(current_user),
+        Message.read == False,
+        Message.sender_id != current_user.id
+    ).scalar()
+    return jsonify({'count': count})
 
 # User Self-Service Routes
 @bp.route('/profile', methods=['PUT'])

@@ -3,12 +3,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from flask_socketio import SocketIO
 import os
 import click
 
 db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
+socketio = SocketIO()
 
 def create_app(config_class='backend.config.Config'):
     app = Flask(__name__, instance_relative_config=True)
@@ -31,6 +33,7 @@ def create_app(config_class='backend.config.Config'):
     db.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
+    socketio.init_app(app, cors_allowed_origins="*")
     CORS(app, resources={r"/api/*": {"origins": "*"}}) # Allow all origins for now
 
     from . import routes

@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useGlobalFilter } from '../contexts/GlobalFilterContext';
+import QueueCard from '../components/common/QueueCard';
+import { Activity, Wind, Heart } from 'react-feather';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -40,20 +44,61 @@ const TestTitle = styled.h2`
   color: ${({ theme }) => theme.main};
 `;
 
+const QueueStatsContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  flex-wrap: wrap;
+`;
+
 const TEST_TYPES = [
-  { key: 'full-blood-count', name: 'Full Blood Count' },
-  { key: 'kidney-function-test', name: 'Kidney Function Test' },
-  { key: 'lipid-profile', name: 'Lipid Profile' },
-  { key: 'liver-function-test', name: 'Liver Function Test' },
-  { key: 'ecg', name: 'ECG' },
-  { key: 'spirometry', name: 'Spirometry' },
-  { key: 'audiometry', name: 'Audiometry' },
+  { key: 'full-blood-count', name: 'Full Blood Count', icon: null },
+  { key: 'kidney-function-test', name: 'Kidney Function Test', icon: null },
+  { key: 'lipid-profile', name: 'Lipid Profile', icon: null },
+  { key: 'liver-function-test', name: 'Liver Function Test', icon: null },
+  { key: 'ecg', name: 'ECG', icon: <Heart size={24} /> },
+  { key: 'spirometry', name: 'Spirometry', icon: <Wind size={24} /> },
+  { key: 'audiometry', name: 'Audiometry', icon: <Activity size={24} /> },
 ];
 
 const TestResultsLandingPage: React.FC = () => {
+  const [queueStats, setQueueStats] = useState<any>(null);
+  const { screeningYear, companySection } = useGlobalFilter();
+
+  useEffect(() => {
+    const fetchQueueStats = async () => {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/queue/stats', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { screeningYear, companySection },
+      });
+      setQueueStats(response.data);
+    };
+    fetchQueueStats();
+  }, [screeningYear, companySection]);
+
   return (
     <PageContainer>
-      <PageTitle>Select a Test to Record Results</PageTitle>
+      <PageTitle>Test Results</PageTitle>
+      {queueStats && (
+        <QueueStatsContainer>
+          <QueueCard
+            title="Audiometry Queue"
+            count={queueStats.audiometry}
+            icon={<Activity size={24} />}
+          />
+          <QueueCard
+            title="Spirometry Queue"
+            count={queueStats.spirometry}
+            icon={<Wind size={24} />}
+          />
+          <QueueCard
+            title="ECG Queue"
+            count={queueStats.ecg}
+            icon={<Heart size={24} />}
+          />
+        </QueueStatsContainer>
+      )}
       <TestList>
         {TEST_TYPES.map((test) => (
           <TestCard key={test.key} to={`/test-results/${test.key}/search`}>
