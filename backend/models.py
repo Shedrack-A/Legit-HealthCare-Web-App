@@ -269,6 +269,7 @@ class ScreeningBioData(db.Model):
     company_section = db.Column(db.String(10), nullable=False) # 'DCP' or 'DCT'
 
     date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     __table_args__ = (
         db.UniqueConstraint('patient_id_for_year', 'screening_year', 'company_section', name='_patient_id_year_company_uc'),
@@ -326,3 +327,12 @@ class Branding(db.Model):
 
     def __repr__(self):
         return f'<Branding {self.clinic_name}>'
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255))
+    is_read = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='notifications')

@@ -50,9 +50,10 @@ const SubmitButton = styled.button`
 
 interface ConsultationFormProps {
   patient: any;
+  onSuccess?: () => void;
 }
 
-const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient }) => {
+const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient, onSuccess }) => {
   const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
@@ -90,6 +91,9 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient }) => {
         }
       );
       alert('Consultation saved successfully!');
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to save consultation:', error);
       alert('Failed to save consultation.');

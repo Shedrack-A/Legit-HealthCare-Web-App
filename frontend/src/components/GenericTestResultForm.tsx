@@ -85,6 +85,7 @@ interface GenericFormProps {
   fetchEndpoint: string;
   title: string;
   calculations?: CalculationRule[];
+  onSuccess?: () => void;
 }
 
 const GenericTestResultForm: React.FC<GenericFormProps> = ({
@@ -94,6 +95,7 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({
   fetchEndpoint,
   title,
   calculations,
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -170,6 +172,9 @@ const GenericTestResultForm: React.FC<GenericFormProps> = ({
         headers: { Authorization: `Bearer ${token}` },
       });
       alert(`${title} data saved successfully!`);
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error(`Failed to save ${title} data:`, error);
       const errorMessage =

@@ -2,116 +2,86 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { TEST_TYPE_CONFIG } from '../../data/constants';
 import { useGlobalFilter } from '../../contexts/GlobalFilterContext';
-import { Search } from 'react-feather';
+import QueueCard from '../../components/common/QueueCard';
+import { Activity, Wind, Heart } from 'react-feather';
 
-const SearchIcon = styled(Search)`
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const PageContainer = styled.div`
-  padding: 2rem;
-`;
-
-const PageTitle = styled.h1`
-  color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
-`;
-
-const SearchInputContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: ${({ theme }) => theme.borderRadius};
-  padding: ${({ theme }) => theme.spacing.sm};
-  margin-bottom: 2rem;
+const SearchContainer = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const SearchInput = styled.input`
-  border: none;
-  background-color: transparent;
   width: 100%;
-  font-size: 1.2rem;
-
-  &:focus {
-    outline: none;
-  }
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
 `;
 
-const ResultsList = styled.ul`
+const PatientList = styled.ul`
   list-style: none;
   padding: 0;
+  margin: 0;
 `;
 
-const ResultItem = styled.li`
+const PatientListItem = styled.li`
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.cardBorder};
-  border-radius: 8px;
-  margin-bottom: 1rem;
-`;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 
-const ResultLink = styled(Link)`
-  display: block;
-  padding: 1.5rem;
-  text-decoration: none;
-  color: inherit;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.cardHover};
+  a {
+    text-decoration: none;
+    color: ${({ theme }) => theme.text};
+    font-weight: 600;
   }
 `;
 
-const PatientInfo = styled.div`
+const QueueStatsContainer = styled.div`
   display: flex;
-  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  flex-wrap: wrap;
 `;
-
-const PatientName = styled.h3`
-  margin: 0;
-  color: ${({ theme }) => theme.main};
-`;
-
-interface PatientSearchResult {
-  id: number;
-  staff_id: string;
-  first_name: string;
-  last_name: string;
-  department: string;
-  age: number;
-}
 
 const TestResultSearchPage: React.FC = () => {
-  const { testType } = useParams<{ testType: string }>();
-  const testConfig = testType ? TEST_TYPE_CONFIG[testType] : null;
-  const { companySection, screeningYear } = useGlobalFilter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<PatientSearchResult[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [queueStats, setQueueStats] = useState<any>(null);
+  const { screeningYear, companySection } = useGlobalFilter();
+  const { testType } = useParams<{ testType: string }>();
+
+  const testConfig: { [key: string]: { name: string, icon: React.ReactNode } } = {
+    audiometry: { name: 'Audiometry', icon: <Activity size={24} /> },
+    spirometry: { name: 'Spirometry', icon: <Wind size={24} /> },
+    ecg: { name: 'ECG', icon: <Heart size={24} /> },
+  };
+
+  useEffect(() => {
+    const fetchQueueStats = async () => {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/queue/stats', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { screeningYear, companySection },
+      });
+      setQueueStats(response.data);
+    };
+    fetchQueueStats();
+  }, [screeningYear, companySection]);
 
   useEffect(() => {
     const searchPatients = async () => {
-      if (searchTerm.trim() === '') {
-        setResults([]);
-        return;
-      }
-      try {
+      if (searchTerm.length > 2) {
         const token = localStorage.getItem('token');
         const response = await axios.get('/api/screening/search', {
           headers: { Authorization: `Bearer ${token}` },
-          params: {
-            screening_year: screeningYear,
-            company_section: companySection,
-            searchTerm: searchTerm,
-          },
+          params: { screeningYear, companySection, searchTerm },
         });
-        setResults(response.data);
-      } catch (error) {
-        console.error('Failed to search for patients:', error);
-        setResults([]);
+        setPatients(response.data);
+      } else {
+        setPatients([]);
       }
     };
-
     const debounceTimer = setTimeout(() => {
       searchPatients();
     }, 300);
@@ -119,54 +89,35 @@ const TestResultSearchPage: React.FC = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchTerm, screeningYear, companySection]);
 
-  if (!testConfig) {
-    return (
-      <PageContainer>
-        <PageTitle>Error</PageTitle>
-        <p>Invalid test type specified.</p>
-      </PageContainer>
-    );
-  }
-
   return (
-    <PageContainer>
-      <PageTitle>{testConfig.name} - Search Patient</PageTitle>
-
-      <SearchInputContainer>
-        <SearchIcon size={20} />
+    <div>
+      {queueStats && testType && testConfig[testType] && (
+        <QueueStatsContainer>
+          <QueueCard
+            title={`Patients in ${testConfig[testType].name} Queue`}
+            count={queueStats[testType]}
+            icon={testConfig[testType].icon}
+          />
+        </QueueStatsContainer>
+      )}
+      <SearchContainer>
         <SearchInput
           type="text"
-          placeholder="Search by Staff ID..."
+          placeholder="Search for patient by Staff ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-      </SearchInputContainer>
-
-      <ResultsList>
-        {results.map((patient) => (
-          <ResultItem key={patient.id}>
-            <ResultLink
-              to={`/test-results/${testType}/form/${patient.staff_id}`}
-            >
-              <PatientInfo>
-                <div>
-                  <PatientName>
-                    {patient.first_name} {patient.last_name}
-                  </PatientName>
-                  <p>
-                    Staff ID: {patient.staff_id} | Department:{' '}
-                    {patient.department}
-                  </p>
-                </div>
-                <div>
-                  <p>Age: {patient.age}</p>
-                </div>
-              </PatientInfo>
-            </ResultLink>
-          </ResultItem>
+      </SearchContainer>
+      <PatientList>
+        {patients.map((patient) => (
+          <PatientListItem key={patient.staff_id}>
+            <Link to={`/test-results/${testType}/form/${patient.staff_id}`}>
+              {patient.first_name} {patient.last_name} ({patient.staff_id})
+            </Link>
+          </PatientListItem>
         ))}
-      </ResultsList>
-    </PageContainer>
+      </PatientList>
+    </div>
   );
 };
 

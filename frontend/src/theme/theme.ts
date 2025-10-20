@@ -3,6 +3,7 @@ const shared = {
   mainHover: '#0059b3',
   accent: '#4cc4ff',
   disabled: '#a0a0a0',
+  danger: '#dc3545',
 
   // Spacing and Sizing
   spacing: {
@@ -13,6 +14,7 @@ const shared = {
     xl: '24px',
   },
   fontSizes: {
+    xs: '0.75rem',
     small: '0.875rem',
     medium: '1rem',
     large: '1.25rem',
@@ -29,6 +31,7 @@ export const lightTheme = {
   background: '#f4f7fc',
   text: '#1c1c1e',
   textSecondary: '#6c757d',
+  textMuted: '#adb5bd',
   cardBg: '#ffffff',
   cardBorder: '#e0e0e0',
   cardHover: '#f5f5f5',
@@ -41,6 +44,7 @@ export const darkTheme = {
   background: '#1a1a1a',
   text: '#e1e1e1',
   textSecondary: '#adb5bd',
+  textMuted: '#6c757d',
   cardBg: '#252525',
   cardBorder: '#383838',
   cardHover: '#303030',
