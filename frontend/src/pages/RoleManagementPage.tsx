@@ -2,14 +2,25 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import EditRoleModal from '../components/EditRoleModal';
+import { Button } from '../components/common/Button';
+import { Input } from '../components/common/Input';
+import { Edit, Trash2 } from 'react-feather';
 
 const PageContainer = styled.div`
-  padding: 2rem;
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
 const PageTitle = styled.h1`
   color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+const Card = styled.div`
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.cardPadding};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const RoleTable = styled.table`
@@ -19,19 +30,33 @@ const RoleTable = styled.table`
 
 const Th = styled.th`
   border-bottom: 2px solid ${({ theme }) => theme.cardBorder};
-  padding: 1rem;
+  padding: ${({ theme }) => theme.spacing.md};
   text-align: left;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  text-transform: uppercase;
 `;
 
 const Td = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.cardBorder};
-  padding: 1rem;
+  padding: ${({ theme }) => theme.spacing.md};
+`;
+
+const ActionContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const CreateRoleForm = styled.form`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.md};
+  align-items: center;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 interface Role {
   id: number;
   name: string;
-  permissions: number[]; // Now storing permission IDs
+  permissions: number[];
 }
 
 interface Permission {
@@ -51,8 +76,12 @@ const RoleManagementPage: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const [rolesResponse, permissionsResponse] = await Promise.all([
-        axios.get('/api/roles', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/permissions', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('/api/roles', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get('/api/permissions', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       const rolesData = rolesResponse.data;
@@ -80,14 +109,21 @@ const RoleManagementPage: React.FC = () => {
     fetchAllData();
   }, []);
 
-  const permissionMap = new Map(permissions.map(p => [p.id, p.name]));
+  const permissionMap = new Map(permissions.map((p) => [p.id, p.name]));
 
-  const handleSavePermissions = async (roleId: number, permissionIds: number[]) => {
+  const handleSavePermissions = async (
+    roleId: number,
+    permissionIds: number[]
+  ) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/roles/${roleId}`, { permission_ids: permissionIds }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `/api/roles/${roleId}`,
+        { permission_ids: permissionIds },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert('Permissions updated successfully!');
       fetchAllData();
       setEditingRole(null);
@@ -102,9 +138,13 @@ const RoleManagementPage: React.FC = () => {
     if (!newRoleName.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/roles', { name: newRoleName }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(
+        '/api/roles',
+        { name: newRoleName },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       // Assuming the backend returns the new role with an empty permissions list
       const newRole = { ...response.data, permissions: [] };
       setRoles([...roles, newRole]);
@@ -122,7 +162,7 @@ const RoleManagementPage: React.FC = () => {
         await axios.delete(`/api/roles/${roleId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setRoles(roles.filter(r => r.id !== roleId));
+        setRoles(roles.filter((r) => r.id !== roleId));
       } catch (error: any) {
         console.error('Failed to delete role:', error);
         alert(error.response?.data?.message || 'Failed to delete role.');
@@ -131,44 +171,66 @@ const RoleManagementPage: React.FC = () => {
   };
 
   if (loading) {
-      return <PageContainer><p>Loading...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading...</p>
+      </PageContainer>
+    );
   }
 
   return (
     <PageContainer>
       <PageTitle>Role & Permission Management</PageTitle>
 
-      <form onSubmit={handleCreateRole} style={{ marginBottom: '2rem' }}>
-        <input
-          type="text"
-          value={newRoleName}
-          onChange={(e) => setNewRoleName(e.target.value)}
-          placeholder="New role name"
-        />
-        <button type="submit">Create Role</button>
-      </form>
+      <Card>
+        <CreateRoleForm onSubmit={handleCreateRole}>
+          <Input
+            type="text"
+            value={newRoleName}
+            onChange={(e) => setNewRoleName(e.target.value)}
+            placeholder="New role name"
+            style={{ flexGrow: 1 }}
+          />
+          <Button type="submit">Create Role</Button>
+        </CreateRoleForm>
+      </Card>
 
-      <RoleTable>
-        <thead>
-          <tr>
-            <Th>Role</Th>
-            <Th>Permissions</Th>
-            <Th>Actions</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {roles.map((role) => (
-            <tr key={role.id}>
-              <Td>{role.name}</Td>
-              <Td>{role.permissions.map(pId => permissionMap.get(pId)).join(', ') || 'N/A'}</Td>
-              <Td>
-                <button onClick={() => setEditingRole(role)}>Edit</button>
-                <button onClick={() => handleDeleteRole(role.id)} style={{ marginLeft: '0.5rem' }}>Delete</button>
-              </Td>
+      <Card>
+        <RoleTable>
+          <thead>
+            <tr>
+              <Th>Role</Th>
+              <Th>Permissions</Th>
+              <Th>Actions</Th>
             </tr>
-          ))}
-        </tbody>
-      </RoleTable>
+          </thead>
+          <tbody>
+            {roles.map((role) => (
+              <tr key={role.id}>
+                <Td>{role.name}</Td>
+                <Td>
+                  {role.permissions
+                    .map((pId) => permissionMap.get(pId))
+                    .join(', ') || 'N/A'}
+                </Td>
+                <Td>
+                  <ActionContainer>
+                    <Button onClick={() => setEditingRole(role)}>
+                      <Edit size={16} />
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteRole(role.id)}
+                      variant="danger"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </ActionContainer>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </RoleTable>
+      </Card>
 
       {editingRole && (
         <EditRoleModal

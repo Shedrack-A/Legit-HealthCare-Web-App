@@ -29,7 +29,7 @@ export const SecondaryButton = styled.button`
   ${baseButtonStyles}
   background-color: #A9A9A9;
   color: white;
-  border-color: #A9A9A9;
+  border-color: #a9a9a9;
 
   &:hover {
     background-color: #8c8c8c;
@@ -51,7 +51,7 @@ export const SecondaryLinkButton = styled(Link)`
   ${baseButtonStyles}
   background-color: #A9A9A9;
   color: white;
-  border-color: #A9A9A9;
+  border-color: #a9a9a9;
 
   &:hover {
     background-color: #8c8c8c;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -38,8 +38,8 @@ const Td = styled.td`
 `;
 
 const ActionContainer = styled.div`
-    display: flex;
-    gap: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 interface ScreenedPatient {
@@ -59,13 +59,16 @@ const ViewRecordsPage: React.FC = () => {
   const { showFlashMessage, setIsLoading, isLoading } = useApp();
   const navigate = useNavigate();
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/screening/records', {
         headers: { Authorization: `Bearer ${token}` },
-        params: { screening_year: screeningYear, company_section: companySection },
+        params: {
+          screening_year: screeningYear,
+          company_section: companySection,
+        },
       });
       setRecords(response.data);
     } catch (error) {
@@ -75,14 +78,18 @@ const ViewRecordsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [companySection, screeningYear, setIsLoading, showFlashMessage]);
 
   useEffect(() => {
     fetchRecords();
-  }, [screeningYear, companySection]);
+  }, [fetchRecords]);
 
   const handleDelete = async (recordId: number) => {
-    if (window.confirm('Are you sure you want to remove this patient from this screening year?')) {
+    if (
+      window.confirm(
+        'Are you sure you want to remove this patient from this screening year?'
+      )
+    ) {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
@@ -105,7 +112,11 @@ const ViewRecordsPage: React.FC = () => {
   };
 
   if (isLoading && records.length === 0) {
-    return <PageContainer><p>Loading records...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading records...</p>
+      </PageContainer>
+    );
   }
 
   return (
@@ -126,29 +137,38 @@ const ViewRecordsPage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-            {records.length > 0 ? (
-                records.map((record) => (
-                  <tr key={record.record_id}>
-                    <Td>{record.patient_id}</Td>
-                    <Td>{record.staff_id}</Td>
-                    <Td>{record.first_name}</Td>
-                    <Td>{record.last_name}</Td>
-                    <Td>{record.department}</Td>
-                    <Td>{record.gender}</Td>
-                    <Td>{record.contact_phone}</Td>
-                    <Td>
-                      <ActionContainer>
-                        <Button onClick={() => handleEdit(record.staff_id)}><Edit size={16} /></Button>
-                        <Button onClick={() => handleDelete(record.record_id)} style={{backgroundColor: '#dc3545'}}><Trash2 size={16} /></Button>
-                      </ActionContainer>
-                    </Td>
-                  </tr>
-                ))
-            ) : (
-                <tr>
-                    <Td colSpan={8} style={{ textAlign: 'center' }}>No records found for the selected year and company.</Td>
-                </tr>
-            )}
+          {records.length > 0 ? (
+            records.map((record) => (
+              <tr key={record.record_id}>
+                <Td>{record.patient_id}</Td>
+                <Td>{record.staff_id}</Td>
+                <Td>{record.first_name}</Td>
+                <Td>{record.last_name}</Td>
+                <Td>{record.department}</Td>
+                <Td>{record.gender}</Td>
+                <Td>{record.contact_phone}</Td>
+                <Td>
+                  <ActionContainer>
+                    <Button onClick={() => handleEdit(record.staff_id)}>
+                      <Edit size={16} />
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(record.record_id)}
+                      style={{ backgroundColor: '#dc3545' }}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </ActionContainer>
+                </Td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <Td colSpan={8} style={{ textAlign: 'center' }}>
+                No records found for the selected year and company.
+              </Td>
+            </tr>
+          )}
         </tbody>
       </RecordTable>
     </PageContainer>

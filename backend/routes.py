@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify, request, current_app, session, send_from_directory
+from flask import Blueprint, jsonify, request, current_app, session, send_from_directory, send_file
 from .models import User, Patient, ScreeningBioData, Consultation, FullBloodCount, KidneyFunctionTest, LipidProfile, LiverFunctionTest, ECG, Spirometry, Audiometry, Role, Permission, TemporaryAccessCode, AuditLog, SystemConfig, Conversation, Message, Branding
 from . import db
 import jwt
 import os
 from werkzeug.utils import secure_filename
 import openpyxl
+from io import BytesIO
 from datetime import datetime, timedelta, timezone, date
 from functools import wraps
 from sqlalchemy import func
@@ -298,13 +299,16 @@ def save_director_review(current_user, staff_id):
 
     patient = Patient.query.filter_by(staff_id=staff_id).first_or_404()
 
-    def update_model(obj, model_fields):
+    def update_model(model_class, patient_id, fields):
+        obj = model_class.query.filter_by(patient_id=patient_id).first()
         if not obj:
-            return
-        for field in model_fields:
+            obj = model_class(patient_id=patient_id)
+            db.session.add(obj)
+        for field in fields:
             if field in data and hasattr(obj, field):
                 setattr(obj, field, data[field])
 
+    # Update Consultation
     consultation_fields = [
         'diabetes_mellitus', 'hypertension', 'bp', 'pulse', 'spo2', 'hs', 'breast_exam',
         'breast_exam_remark', 'abdomen', 'prostrate_specific_antigen', 'psa_remark',
@@ -312,30 +316,18 @@ def save_director_review(current_user, staff_id):
         'assessment_hx_pe', 'other_assessments', 'overall_lab_remark', 'other_remarks',
         'overall_assessment', 'comment_one', 'comment_two', 'comment_three', 'comment_four'
     ]
-    if not patient.consultation:
-        patient.consultation = Consultation(patient_id=patient.id)
-        db.session.add(patient.consultation)
-
-    # Set the timestamp only if it's not already set
+    update_model(Consultation, patient.id, consultation_fields)
     if not patient.consultation.director_review_timestamp:
         patient.consultation.director_review_timestamp = datetime.utcnow()
 
-    update_model(patient.consultation, consultation_fields)
-
-    if not patient.ecg:
-        patient.ecg = ECG(patient_id=patient.id)
-        db.session.add(patient.ecg)
-    update_model(patient.ecg, ['ecg_result', 'remark'])
-
-    if not patient.spirometry:
-        patient.spirometry = Spirometry(patient_id=patient.id)
-        db.session.add(patient.spirometry)
-    update_model(patient.spirometry, ['spirometry_result', 'spirometry_remark'])
-
-    if not patient.audiometry:
-        patient.audiometry = Audiometry(patient_id=patient.id)
-        db.session.add(patient.audiometry)
-    update_model(patient.audiometry, ['audiometry_result', 'audiometry_remark'])
+    # Update Test Results
+    update_model(FullBloodCount, patient.id, ['hct', 'wbc', 'plt', 'lymp_percent', 'lymp', 'gra_percent', 'gra', 'mid_percent', 'mid', 'rbc', 'mcv', 'mch', 'mchc', 'rdw', 'pdw', 'hgb', 'fbc_remark', 'other_remarks'])
+    update_model(KidneyFunctionTest, patient.id, ['k', 'na', 'cl', 'ca', 'hc03', 'urea', 'cre', 'kft_remark', 'other_remarks'])
+    update_model(LipidProfile, patient.id, ['tcho', 'tg', 'hdl', 'ldl', 'lp_remark', 'other_remarks'])
+    update_model(LiverFunctionTest, patient.id, ['ast', 'alt', 'alp', 'tb', 'cb', 'lft_remark', 'other_remarks'])
+    update_model(ECG, patient.id, ['ecg_result', 'remark'])
+    update_model(Spirometry, patient.id, ['spirometry_result', 'spirometry_remark'])
+    update_model(Audiometry, patient.id, ['audiometry_result', 'audiometry_remark'])
 
     log_audit(current_user, 'DIRECTOR_REVIEW_SAVE', f"Saved director review for patient {patient.first_name} {patient.last_name} (Staff ID: {patient.staff_id})")
     db.session.commit()
@@ -1358,6 +1350,190 @@ def disable_2fa(current_user):
     db.session.commit()
     return jsonify({'message': '2FA disabled successfully.'})
 
+# Download Routes
+@bp.route('/patients/download', methods=['GET'])
+@token_required('download_patient_biodata')
+def download_all_patients(current_user):
+    patients = Patient.query.order_by(Patient.first_name, Patient.last_name).all()
+
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = 'All Patients Bio-Data'
+
+    headers = [
+        'Staff ID', 'First Name', 'Middle Name', 'Last Name', 'Department',
+        'Gender', 'Date of Birth', 'Contact Phone', 'Email Address',
+        'Race', 'Nationality'
+    ]
+    sheet.append(headers)
+
+    for p in patients:
+        sheet.append([
+            p.staff_id, p.first_name, p.middle_name, p.last_name, p.department,
+            p.gender, p.date_of_birth.isoformat() if p.date_of_birth else '', p.contact_phone,
+            p.email_address, p.race, p.nationality
+        ])
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    log_audit(current_user, 'DOWNLOAD_PATIENT_BIODATA', 'Downloaded comprehensive patient bio-data.')
+    db.session.commit()
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='all_patients_biodata.xlsx'
+    )
+
+@bp.route('/screening/download', methods=['GET'])
+@token_required('download_screening_data')
+def download_screening_data(current_user):
+    screening_year = request.args.get('screening_year', type=int)
+    company_section = request.args.get('company_section')
+
+    if not screening_year or not company_section:
+        return jsonify({'message': 'screening_year and company_section parameters are required'}), 400
+
+    records = db.session.query(
+        Patient
+    ).join(
+        ScreeningBioData, Patient.id == ScreeningBioData.patient_comprehensive_id
+    ).filter(
+        ScreeningBioData.screening_year == screening_year,
+        ScreeningBioData.company_section == company_section
+    ).order_by(Patient.first_name, Patient.last_name).all()
+
+    def get_patient_summary_for_download(patient):
+        summary = {
+            'staff_id': patient.staff_id,
+            'first_name': patient.first_name,
+            'middle_name': patient.middle_name,
+            'last_name': patient.last_name,
+            'department': patient.department,
+            'gender': patient.gender,
+            'date_of_birth': patient.date_of_birth.isoformat() if patient.date_of_birth else '',
+        }
+
+        def model_to_dict(model_instance):
+            if not model_instance:
+                return {}
+            exclude = ['id', 'patient_id']
+            result = {}
+            for c in model_instance.__table__.columns:
+                if c.name not in exclude:
+                    value = getattr(model_instance, c.name)
+                    if isinstance(value, (datetime, date)):
+                        result[c.name] = value.isoformat()
+                    else:
+                        result[c.name] = value
+            return result
+
+        summary.update(model_to_dict(patient.consultation))
+        summary.update(model_to_dict(patient.full_blood_count))
+        summary.update(model_to_dict(patient.kidney_function_test))
+        summary.update(model_to_dict(patient.lipid_profile))
+        summary.update(model_to_dict(patient.liver_function_test))
+        summary.update(model_to_dict(patient.ecg))
+        summary.update(model_to_dict(patient.spirometry))
+        summary.update(model_to_dict(patient.audiometry))
+        return summary
+
+    patient_summaries = [get_patient_summary_for_download(p) for p in records]
+
+    if not patient_summaries:
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.title = 'No Records'
+        sheet.append(['No records found for the selected criteria.'])
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'screening_data_{screening_year}_{company_section}.xlsx'
+        )
+
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = f'{screening_year} {company_section} Screening'
+
+    headers = list(patient_summaries[0].keys())
+    sheet.append(headers)
+
+    for summary in patient_summaries:
+        row = [summary.get(h) for h in headers]
+        sheet.append(row)
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    log_audit(current_user, 'DOWNLOAD_SCREENING_DATA', f'Downloaded screening data for {screening_year} {company_section}.')
+    db.session.commit()
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=f'screening_data_{screening_year}_{company_section}.xlsx'
+    )
+
+@bp.route('/screening/biodata/download', methods=['GET'])
+@token_required('download_screening_biodata')
+def download_screening_biodata(current_user):
+    screening_year = request.args.get('screening_year', type=int)
+    company_section = request.args.get('company_section')
+
+    if not screening_year or not company_section:
+        return jsonify({'message': 'screening_year and company_section parameters are required'}), 400
+
+    records = db.session.query(
+        Patient
+    ).join(
+        ScreeningBioData, Patient.id == ScreeningBioData.patient_comprehensive_id
+    ).filter(
+        ScreeningBioData.screening_year == screening_year,
+        ScreeningBioData.company_section == company_section
+    ).order_by(Patient.first_name, Patient.last_name).all()
+
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = f'{screening_year} {company_section} Bio-Data'
+
+    headers = [
+        'Staff ID', 'First Name', 'Middle Name', 'Last Name', 'Department',
+        'Gender', 'Date of Birth', 'Contact Phone', 'Email Address',
+        'Race', 'Nationality'
+    ]
+    sheet.append(headers)
+
+    for p in records:
+        sheet.append([
+            p.staff_id, p.first_name, p.middle_name, p.last_name, p.department,
+            p.gender, p.date_of_birth.isoformat() if p.date_of_birth else '', p.contact_phone,
+            p.email_address, p.race, p.nationality
+        ])
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    log_audit(current_user, 'DOWNLOAD_SCREENING_BIODATA', f'Downloaded screening bio-data for {screening_year} {company_section}.')
+    db.session.commit()
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=f'screening_biodata_{screening_year}_{company_section}.xlsx'
+    )
+
+
 # Branding Routes
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -1424,3 +1600,84 @@ def update_branding(current_user):
 @bp.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+@bp.route('/patients/claim-info', methods=['GET'])
+def get_patient_claim_info():
+    staff_id = request.args.get('staff_id')
+    if not staff_id:
+        return jsonify({'message': 'Staff ID is required'}), 400
+
+    patient = Patient.query.filter_by(staff_id=staff_id).first()
+    if not patient:
+        return jsonify({'message': 'Patient not found'}), 404
+
+    if patient.user_id:
+        return jsonify({'message': 'Account already claimed'}), 409
+
+    return jsonify({
+        'first_name': patient.first_name,
+        'last_name': patient.last_name,
+        'email': patient.email_address,
+    })
+
+@bp.route('/patients/upload', methods=['POST'])
+@token_required('upload_patient_data')
+def upload_patients(current_user):
+    if 'file' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'message': 'No selected file'}), 400
+
+    if file and file.filename.endswith('.xlsx'):
+        try:
+            workbook = openpyxl.load_workbook(file)
+            sheet = workbook.active
+
+            # Assuming the first row is the header
+            headers = [cell.value for cell in sheet[1]]
+
+            required_fields = ['Staff ID', 'First Name', 'Last Name']
+            if not all(field in headers for field in required_fields):
+                return jsonify({'message': 'Missing required columns: Staff ID, First Name, Last Name'}), 400
+
+            patients_added = 0
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                row_data = dict(zip(headers, row))
+
+                staff_id = row_data.get('Staff ID')
+                first_name = row_data.get('First Name')
+                last_name = row_data.get('Last Name')
+
+                if not staff_id or not first_name or not last_name:
+                    continue # Skip rows with missing required data
+
+                if Patient.query.filter_by(staff_id=staff_id).first():
+                    continue # Skip existing patients
+
+                new_patient = Patient(
+                    staff_id=staff_id,
+                    first_name=first_name,
+                    last_name=last_name,
+                    department=row_data.get('Department'),
+                    gender=row_data.get('Gender'),
+                    date_of_birth=row_data.get('Date of Birth'),
+                    contact_phone=row_data.get('Contact Phone'),
+                    email_address=row_data.get('Email Address'),
+                    race=row_data.get('Race'),
+                    nationality=row_data.get('Nationality')
+                )
+                db.session.add(new_patient)
+                patients_added += 1
+
+            db.session.commit()
+            log_audit(current_user, 'PATIENT_BULK_UPLOAD', f'Uploaded and added {patients_added} new patients.')
+            db.session.commit()
+
+            return jsonify({'message': f'Successfully added {patients_added} new patients.'}), 201
+
+        except Exception as e:
+            current_app.logger.error(f"Error processing patient upload file: {e}")
+            return jsonify({'message': 'Error processing file'}), 500
+
+    return jsonify({'message': 'Invalid file type'}), 400

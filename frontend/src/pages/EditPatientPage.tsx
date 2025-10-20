@@ -77,7 +77,9 @@ const EditPatientPage: React.FC = () => {
     fetchPatientData();
   }, [staffId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -98,28 +100,151 @@ const EditPatientPage: React.FC = () => {
   };
 
   if (loading) {
-    return <PageContainer><p>Loading patient data...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading patient data...</p>
+      </PageContainer>
+    );
   }
 
   if (!formData) {
-    return <PageContainer><p>Could not load patient data.</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Could not load patient data.</p>
+      </PageContainer>
+    );
   }
 
   return (
     <PageContainer>
-      <PageTitle>Edit Patient: {formData.first_name} {formData.last_name}</PageTitle>
+      <PageTitle>
+        Edit Patient: {formData.first_name} {formData.last_name}
+      </PageTitle>
       <FormContainer onSubmit={handleSubmit}>
-        <FormGroup><FormLabel>Staff ID</FormLabel><FormInput type="text" name="staff_id" value={formData.staff_id || ''} onChange={handleChange} required /></FormGroup>
-        <FormGroup><FormLabel>First Name</FormLabel><FormInput type="text" name="first_name" value={formData.first_name || ''} onChange={handleChange} required /></FormGroup>
-        <FormGroup><FormLabel>Middle Name</FormLabel><FormInput type="text" name="middle_name" value={formData.middle_name || ''} onChange={handleChange} /></FormGroup>
-        <FormGroup><FormLabel>Last Name</FormLabel><FormInput type="text" name="last_name" value={formData.last_name || ''} onChange={handleChange} required /></FormGroup>
-        <FormGroup><FormLabel>Department</FormLabel><FormSelect name="department" value={formData.department || ''} onChange={handleChange} required><option value="">Select...</option>{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</FormSelect></FormGroup>
-        <FormGroup><FormLabel>Gender</FormLabel><FormSelect name="gender" value={formData.gender || ''} onChange={handleChange} required><option value="">Select...</option><option>Male</option><option>Female</option></FormSelect></FormGroup>
-        <FormGroup><FormLabel>Date of Birth</FormLabel><FormInput type="date" name="date_of_birth" value={formData.date_of_birth || ''} onChange={handleChange} required /></FormGroup>
-        <FormGroup><FormLabel>Contact Phone</FormLabel><FormInput type="tel" name="contact_phone" value={formData.contact_phone || ''} onChange={handleChange} required /></FormGroup>
-        <FormGroup><FormLabel>Email Address</FormLabel><FormInput type="email" name="email_address" value={formData.email_address || ''} onChange={handleChange} required /></FormGroup>
-        <FormGroup><FormLabel>Race</FormLabel><FormSelect name="race" value={formData.race || ''} onChange={handleChange} required><option value="">Select...</option>{CONTINENTS.map(c => <option key={c}>{c}</option>)}</FormSelect></FormGroup>
-        <FormGroup><FormLabel>Nationality</FormLabel><FormSelect name="nationality" value={formData.nationality || ''} onChange={handleChange} required><option value="">Select...</option>{COUNTRIES.map(c => <option key={c}>{c}</option>)}</FormSelect></FormGroup>
+        <FormGroup>
+          <FormLabel>Staff ID</FormLabel>
+          <FormInput
+            type="text"
+            name="staff_id"
+            value={formData.staff_id || ''}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>First Name</FormLabel>
+          <FormInput
+            type="text"
+            name="first_name"
+            value={formData.first_name || ''}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Middle Name</FormLabel>
+          <FormInput
+            type="text"
+            name="middle_name"
+            value={formData.middle_name || ''}
+            onChange={handleChange}
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Last Name</FormLabel>
+          <FormInput
+            type="text"
+            name="last_name"
+            value={formData.last_name || ''}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Department</FormLabel>
+          <FormSelect
+            name="department"
+            value={formData.department || ''}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select...</option>
+            {DEPARTMENTS.map((d) => (
+              <option key={d}>{d}</option>
+            ))}
+          </FormSelect>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Gender</FormLabel>
+          <FormSelect
+            name="gender"
+            value={formData.gender || ''}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select...</option>
+            <option>Male</option>
+            <option>Female</option>
+          </FormSelect>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Date of Birth</FormLabel>
+          <FormInput
+            type="date"
+            name="date_of_birth"
+            value={formData.date_of_birth || ''}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Contact Phone</FormLabel>
+          <FormInput
+            type="tel"
+            name="contact_phone"
+            value={formData.contact_phone || ''}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Email Address</FormLabel>
+          <FormInput
+            type="email"
+            name="email_address"
+            value={formData.email_address || ''}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Race</FormLabel>
+          <FormSelect
+            name="race"
+            value={formData.race || ''}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select...</option>
+            {CONTINENTS.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </FormSelect>
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>Nationality</FormLabel>
+          <FormSelect
+            name="nationality"
+            value={formData.nationality || ''}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select...</option>
+            {COUNTRIES.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </FormSelect>
+        </FormGroup>
 
         <SubmitButton type="submit">Update Patient</SubmitButton>
       </FormContainer>

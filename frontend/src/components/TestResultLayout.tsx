@@ -21,12 +21,29 @@ const PatientInfo = styled.div`
   border-radius: 8px;
 `;
 
-const SearchInput = styled.input`
-  width: 100%;
-  max-width: 400px;
-  padding: 0.75rem;
-  border-radius: 4px;
+import { Search } from 'react-feather';
+
+const SearchIcon = styled(Search)`
+  color: ${({ theme }) => theme.textSecondary};
+`;
+
+const SearchInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
   border: 1px solid ${({ theme }) => theme.cardBorder};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: ${({ theme }) => theme.spacing.sm};
+  max-width: 400px;
+`;
+
+const SearchInput = styled.input`
+  border: none;
+  background-color: transparent;
+  width: 100%;
+  &:focus {
+    outline: none;
+  }
 `;
 
 const SearchResults = styled.ul`
@@ -50,7 +67,10 @@ interface TestResultFormProps {
   title: string;
 }
 
-const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) => {
+const TestResultLayout: React.FC<TestResultFormProps> = ({
+  children,
+  title,
+}) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
 
@@ -59,9 +79,12 @@ const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) =>
     if (searchId.length > 2) {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patients/search?staff_id=${searchId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await axios.get(
+          `/api/patients/search?staff_id=${searchId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setSearchResults([response.data]);
       } catch (error) {
         setSearchResults([]);
@@ -76,8 +99,13 @@ const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) =>
       <TestResultContainer>
         <PageTitle>{title}</PageTitle>
         <PatientInfo>
-          <h3>{selectedPatient.first_name} {selectedPatient.last_name}</h3>
-          <p>Staff ID: {selectedPatient.staff_id} | Department: {selectedPatient.department}</p>
+          <h3>
+            {selectedPatient.first_name} {selectedPatient.last_name}
+          </h3>
+          <p>
+            Staff ID: {selectedPatient.staff_id} | Department:{' '}
+            {selectedPatient.department}
+          </p>
         </PatientInfo>
         {children(selectedPatient)}
       </TestResultContainer>
@@ -88,11 +116,21 @@ const TestResultLayout: React.FC<TestResultFormProps> = ({ children, title }) =>
     <TestResultContainer>
       <PageTitle>Find Patient for {title}</PageTitle>
       <SearchContainer>
-        <SearchInput type="text" placeholder="Search by Staff ID..." onChange={handleSearch} />
+        <SearchInputContainer>
+          <SearchIcon size={20} />
+          <SearchInput
+            type="text"
+            placeholder="Search by Staff ID..."
+            onChange={handleSearch}
+          />
+        </SearchInputContainer>
         {searchResults.length > 0 && (
           <SearchResults>
-            {searchResults.map(patient => (
-              <SearchResultItem key={patient.staff_id} onClick={() => setSelectedPatient(patient)}>
+            {searchResults.map((patient) => (
+              <SearchResultItem
+                key={patient.staff_id}
+                onClick={() => setSelectedPatient(patient)}
+              >
                 {patient.first_name} {patient.last_name} ({patient.staff_id})
               </SearchResultItem>
             ))}

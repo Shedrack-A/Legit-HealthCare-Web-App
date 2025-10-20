@@ -41,7 +41,8 @@ const MessageInput = styled.input`
 const ConversationItem = styled.div<{ isActive: boolean }>`
   padding: 1rem;
   cursor: pointer;
-  background-color: ${({ isActive, theme }) => isActive ? theme.accent : 'transparent'};
+  background-color: ${({ isActive, theme }) =>
+    isActive ? theme.accent : 'transparent'};
   border-bottom: 1px solid ${({ theme }) => theme.cardBorder};
 
   &:hover {
@@ -50,19 +51,22 @@ const ConversationItem = styled.div<{ isActive: boolean }>`
 `;
 
 const MessageBubble = styled.div<{ isSender: boolean }>`
-  background-color: ${({ isSender, theme }) => isSender ? theme.main : theme.cardBg};
-  color: ${({ isSender, theme }) => isSender ? 'white' : theme.text};
+  background-color: ${({ isSender, theme }) =>
+    isSender ? theme.main : theme.cardBg};
+  color: ${({ isSender, theme }) => (isSender ? 'white' : theme.text)};
   padding: 0.5rem 1rem;
   border-radius: 1rem;
   margin-bottom: 0.5rem;
   max-width: 70%;
-  align-self: ${({ isSender }) => isSender ? 'flex-end' : 'flex-start'};
+  align-self: ${({ isSender }) => (isSender ? 'flex-end' : 'flex-start')};
 `;
 
 const MessagingPage: React.FC = () => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
-  const [activeConversation, setActiveConversation] = useState<number | null>(null);
+  const [activeConversation, setActiveConversation] = useState<number | null>(
+    null
+  );
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
@@ -75,7 +79,7 @@ const MessagingPage: React.FC = () => {
       setCurrentUserId(decodedToken.user_id);
 
       const response = await axios.get('/api/conversations', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setConversations(response.data);
     };
@@ -87,9 +91,12 @@ const MessagingPage: React.FC = () => {
     if (activeConversation) {
       const fetchMessages = async () => {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/conversations/${activeConversation}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await axios.get(
+          `/api/conversations/${activeConversation}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setMessages(response.data);
       };
       fetchMessages();
@@ -101,15 +108,22 @@ const MessagingPage: React.FC = () => {
     if (!newMessage.trim() || !activeConversation) return;
 
     const token = localStorage.getItem('token');
-    await axios.post('/api/messages', {
-      conversation_id: activeConversation,
-      content: newMessage,
-    }, { headers: { Authorization: `Bearer ${token}` } });
+    await axios.post(
+      '/api/messages',
+      {
+        conversation_id: activeConversation,
+        content: newMessage,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
     // Refresh messages
-    const response = await axios.get(`/api/conversations/${activeConversation}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await axios.get(
+      `/api/conversations/${activeConversation}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     setMessages(response.data);
     setNewMessage('');
   };
@@ -117,7 +131,7 @@ const MessagingPage: React.FC = () => {
   return (
     <MessagingContainer>
       <ConversationList>
-        {conversations.map(convo => (
+        {conversations.map((convo) => (
           <ConversationItem
             key={convo.id}
             isActive={convo.id === activeConversation}
@@ -130,8 +144,11 @@ const MessagingPage: React.FC = () => {
       </ConversationList>
       <ChatWindow>
         <MessageArea>
-          {messages.map(msg => (
-            <MessageBubble key={msg.id} isSender={msg.sender_id === currentUserId}>
+          {messages.map((msg) => (
+            <MessageBubble
+              key={msg.id}
+              isSender={msg.sender_id === currentUserId}
+            >
               <strong>{msg.sender_username}</strong>
               <p>{msg.content}</p>
             </MessageBubble>

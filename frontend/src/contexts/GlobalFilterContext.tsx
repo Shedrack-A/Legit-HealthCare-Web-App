@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // Define the shape of the context data
@@ -10,7 +9,9 @@ interface GlobalFilterContextType {
 }
 
 // Create the context with a default value
-export const GlobalFilterContext = createContext<GlobalFilterContextType | undefined>(undefined);
+export const GlobalFilterContext = createContext<
+  GlobalFilterContextType | undefined
+>(undefined);
 
 // Create a provider component
 interface GlobalFilterProviderProps {
@@ -26,11 +27,18 @@ const generateYears = () => {
   return years;
 };
 
-export const GlobalFilterProvider: React.FC<GlobalFilterProviderProps> = ({ children }) => {
+export const GlobalFilterProvider: React.FC<GlobalFilterProviderProps> = ({
+  children,
+}) => {
   const [companySection, setCompanySection] = useState('DCP');
   const [screeningYear, setScreeningYear] = useState(new Date().getFullYear());
 
-  const value = { companySection, setCompanySection, screeningYear, setScreeningYear };
+  const value = {
+    companySection,
+    setCompanySection,
+    screeningYear,
+    setScreeningYear,
+  };
 
   return (
     <GlobalFilterContext.Provider value={value}>
@@ -43,7 +51,9 @@ export const GlobalFilterProvider: React.FC<GlobalFilterProviderProps> = ({ chil
 export const useGlobalFilter = () => {
   const context = useContext(GlobalFilterContext);
   if (context === undefined) {
-    throw new Error('useGlobalFilter must be used within a GlobalFilterProvider');
+    throw new Error(
+      'useGlobalFilter must be used within a GlobalFilterProvider'
+    );
   }
   return context;
 };

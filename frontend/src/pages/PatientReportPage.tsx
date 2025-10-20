@@ -29,8 +29,10 @@ const ActionButton = styled.button`
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: background-color 0.2s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    background-color 0.2s,
+    transform 0.2s;
 
   &:hover {
     transform: translateY(-2px);
@@ -44,15 +46,15 @@ const ActionButton = styled.button`
 
 const DownloadButton = styled(ActionButton)`
   background-color: ${({ theme }) => theme.main};
-   &:hover {
+  &:hover {
     background-color: ${({ theme }) => theme.accent};
   }
 `;
 
 const EmailButton = styled(ActionButton)`
-  background-color: #34A853; // Google Green
-   &:hover {
-    background-color: #4285F4; // Google Blue
+  background-color: #34a853; // Google Green
+  &:hover {
+    background-color: #4285f4; // Google Blue
   }
 `;
 
@@ -78,12 +80,11 @@ const PatientReportPage: React.FC = () => {
         // Fetch patient summary and branding data in parallel
         const [summaryRes, brandingRes] = await Promise.all([
           axios.get(`/api/patient-summary/${staffId}`, authHeaders),
-          axios.get('/api/branding', authHeaders)
+          axios.get('/api/branding', authHeaders),
         ]);
 
         setSummary(summaryRes.data);
         setBranding(brandingRes.data);
-
       } catch (error) {
         console.error('Failed to fetch report data:', error);
         showFlashMessage('Could not load report data.', 'error');
@@ -107,47 +108,49 @@ const PatientReportPage: React.FC = () => {
     const page2 = document.getElementById('report-page-2');
 
     if (page1 && page2) {
-        setIsLoading(true);
-        try {
-            const canvas1 = await html2canvas(page1, { scale: 2, useCORS: true });
-            const canvas2 = await html2canvas(page2, { scale: 2, useCORS: true });
+      setIsLoading(true);
+      try {
+        const canvas1 = await html2canvas(page1, { scale: 2, useCORS: true });
+        const canvas2 = await html2canvas(page2, { scale: 2, useCORS: true });
 
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            const addImageToPdf = (canvas: HTMLCanvasElement, pdfInstance: jsPDF) => {
-                const imgData = canvas.toDataURL('image/png');
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const ratio = canvasWidth / canvasHeight;
-                const imgWidth = pdfWidth;
-                const imgHeight = imgWidth / ratio;
+        const addImageToPdf = (
+          canvas: HTMLCanvasElement,
+          pdfInstance: jsPDF
+        ) => {
+          const imgData = canvas.toDataURL('image/png');
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const ratio = canvasWidth / canvasHeight;
+          const imgWidth = pdfWidth;
+          const imgHeight = imgWidth / ratio;
 
-                // If the content is taller than the page, it will be scaled down.
-                // This logic assumes each captured canvas fits on one A4 page.
-                if (imgHeight > pdfHeight) {
-                    console.warn("Content is taller than page, scaling might occur.");
-                }
+          // If the content is taller than the page, it will be scaled down.
+          // This logic assumes each captured canvas fits on one A4 page.
+          if (imgHeight > pdfHeight) {
+            console.warn('Content is taller than page, scaling might occur.');
+          }
 
-                pdfInstance.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            };
+          pdfInstance.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        };
 
-            // Add first page
-            addImageToPdf(canvas1, pdf);
+        // Add first page
+        addImageToPdf(canvas1, pdf);
 
-            // Add second page
-            pdf.addPage();
-            addImageToPdf(canvas2, pdf);
+        // Add second page
+        pdf.addPage();
+        addImageToPdf(canvas2, pdf);
 
-            pdf.save(`patient-report-${summary.staff_id}.pdf`);
-
-        } catch (err) {
-            console.error("PDF generation failed:", err);
-            showFlashMessage('PDF generation failed.', 'error');
-        } finally {
-            setIsLoading(false);
-        }
+        pdf.save(`patient-report-${summary.staff_id}.pdf`);
+      } catch (err) {
+        console.error('PDF generation failed:', err);
+        showFlashMessage('PDF generation failed.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -155,9 +158,13 @@ const PatientReportPage: React.FC = () => {
     setIsSending(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`/api/patient-report/email`, { staff_id: staffId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(
+        `/api/patient-report/email`,
+        { staff_id: staffId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       showFlashMessage('Report has been sent successfully!', 'success');
     } catch (error) {
       console.error('Failed to email report:', error);

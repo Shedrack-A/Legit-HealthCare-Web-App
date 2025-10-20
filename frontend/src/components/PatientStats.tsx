@@ -1,30 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import {
+  Users,
+  UserPlus,
+  TrendingUp,
+  TrendingDown,
+  UserCheck,
+} from 'react-feather';
 
 const StatsContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const StatCard = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  padding: ${({ theme }) => theme.cardPadding};
+  border-radius: ${({ theme }) => theme.borderRadius};
+  border: 1px solid ${({ theme }) => theme.cardBorder};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
-const StatTitle = styled.h3`
-  margin-top: 0;
+const IconWrapper = styled.div`
+  font-size: 1.5rem;
   color: ${({ theme }) => theme.main};
 `;
 
+const StatInfo = styled.div``;
+
+const StatTitle = styled.h3`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.textSecondary};
+  font-weight: 500;
+`;
+
 const StatValue = styled.p`
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
 `;
 
 interface PatientStatsProps {
@@ -41,7 +60,10 @@ interface StatsData {
   under_40_count: number;
 }
 
-const PatientStats: React.FC<PatientStatsProps> = ({ screeningYear, companySection }) => {
+const PatientStats: React.FC<PatientStatsProps> = ({
+  screeningYear,
+  companySection,
+}) => {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -81,26 +103,51 @@ const PatientStats: React.FC<PatientStatsProps> = ({ screeningYear, companySecti
   return (
     <StatsContainer>
       <StatCard>
-        <StatTitle>Total Patients</StatTitle>
-        <StatValue>{stats.total_registered}</StatValue>
+        <IconWrapper>
+          <Users />
+        </IconWrapper>
+        <StatInfo>
+          <StatTitle>Total Patients</StatTitle>
+          <StatValue>{stats.total_registered}</StatValue>
+        </StatInfo>
       </StatCard>
       <StatCard>
-        <StatTitle>Registered Today</StatTitle>
-        <StatValue>{stats.registered_today}</StatValue>
+        <IconWrapper>
+          <UserPlus />
+        </IconWrapper>
+        <StatInfo>
+          <StatTitle>Registered Today</StatTitle>
+          <StatValue>{stats.registered_today}</StatValue>
+        </StatInfo>
       </StatCard>
       <StatCard>
-        <StatTitle>Males / Females</StatTitle>
-        <StatValue>
-          {stats.male_count} / {stats.female_count}
-        </StatValue>
+        <IconWrapper>
+          <UserCheck />
+        </IconWrapper>
+        <StatInfo>
+          <StatTitle>Males / Females</StatTitle>
+          <StatValue>
+            {stats.male_count} / {stats.female_count}
+          </StatValue>
+        </StatInfo>
       </StatCard>
       <StatCard>
-        <StatTitle>Age {'>='} 40</StatTitle>
-        <StatValue>{stats.over_40_count}</StatValue>
+        <IconWrapper>
+          <TrendingUp />
+        </IconWrapper>
+        <StatInfo>
+          <StatTitle>Age {'>='} 40</StatTitle>
+          <StatValue>{stats.over_40_count}</StatValue>
+        </StatInfo>
       </StatCard>
       <StatCard>
-        <StatTitle>Age {'<'} 40</StatTitle>
-        <StatValue>{stats.under_40_count}</StatValue>
+        <IconWrapper>
+          <TrendingDown />
+        </IconWrapper>
+        <StatInfo>
+          <StatTitle>Age {'<'} 40</StatTitle>
+          <StatValue>{stats.under_40_count}</StatValue>
+        </StatInfo>
       </StatCard>
     </StatsContainer>
   );

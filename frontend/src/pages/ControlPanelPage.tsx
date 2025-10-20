@@ -1,7 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { Users, UserCheck, Key, Clipboard, Mail, Image, Upload } from 'react-feather';
+import {
+  Users,
+  UserCheck,
+  Key,
+  Clipboard,
+  Mail,
+  Image,
+  Upload,
+  Download,
+} from 'react-feather';
 
 const PageContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
@@ -26,7 +35,9 @@ const AdminCard = styled(Link)`
   text-decoration: none;
   color: inherit;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -54,10 +65,10 @@ const CardTitle = styled.h2`
 `;
 
 const CardDescription = styled.p`
-    font-size: ${({ theme }) => theme.fontSizes.small};
-    color: ${({ theme }) => theme.textSecondary};
-    line-height: 1.4;
-    text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.textSecondary};
+  line-height: 1.4;
+  text-decoration: none;
 `;
 
 const ControlPanelPage: React.FC = () => {
@@ -66,39 +77,74 @@ const ControlPanelPage: React.FC = () => {
       <PageTitle>Control Panel</PageTitle>
       <AdminDashboard>
         <AdminCard to="/control-panel/user-management">
-          <CardIcon><Users /></CardIcon>
+          <CardIcon>
+            <Users />
+          </CardIcon>
           <CardTitle>User Management</CardTitle>
-          <CardDescription>Assign roles and manage user accounts.</CardDescription>
+          <CardDescription>
+            Assign roles and manage user accounts.
+          </CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/role-management">
-          <CardIcon><UserCheck /></CardIcon>
+          <CardIcon>
+            <UserCheck />
+          </CardIcon>
           <CardTitle>Role & Permission Management</CardTitle>
-          <CardDescription>Create, edit, and define roles and their permissions.</CardDescription>
+          <CardDescription>
+            Create, edit, and define roles and their permissions.
+          </CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/temp-access-codes">
-          <CardIcon><Key /></CardIcon>
+          <CardIcon>
+            <Key />
+          </CardIcon>
           <CardTitle>Temporary Access Codes</CardTitle>
-          <CardDescription>Generate and manage temporary, permission-granting codes.</CardDescription>
+          <CardDescription>
+            Generate and manage temporary, permission-granting codes.
+          </CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/audit-log">
-          <CardIcon><Clipboard /></CardIcon>
+          <CardIcon>
+            <Clipboard />
+          </CardIcon>
           <CardTitle>Audit Log</CardTitle>
-          <CardDescription>View a log of all significant user actions.</CardDescription>
+          <CardDescription>
+            View a log of all significant user actions.
+          </CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/email-config">
-          <CardIcon><Mail /></CardIcon>
+          <CardIcon>
+            <Mail />
+          </CardIcon>
           <CardTitle>Email Configuration</CardTitle>
-          <CardDescription>Configure the system's email settings.</CardDescription>
+          <CardDescription>
+            Configure the system's email settings.
+          </CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/branding">
-          <CardIcon><Image /></CardIcon>
+          <CardIcon>
+            <Image />
+          </CardIcon>
           <CardTitle>Branding</CardTitle>
           <CardDescription>Manage clinic name and logos.</CardDescription>
         </AdminCard>
         <AdminCard to="/control-panel/patient-upload">
-          <CardIcon><Upload /></CardIcon>
+          <CardIcon>
+            <Upload />
+          </CardIcon>
           <CardTitle>Patient Data Upload</CardTitle>
-          <CardDescription>Upload patient bio-data from an Excel file.</CardDescription>
+          <CardDescription>
+            Upload patient bio-data from an Excel file.
+          </CardDescription>
+        </AdminCard>
+        <AdminCard to="/control-panel/downloads">
+          <CardIcon>
+            <Download />
+          </CardIcon>
+          <CardTitle>Downloads</CardTitle>
+          <CardDescription>
+            Download patient and screening data.
+          </CardDescription>
         </AdminCard>
       </AdminDashboard>
     </PageContainer>

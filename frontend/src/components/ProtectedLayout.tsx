@@ -27,7 +27,10 @@ interface ProtectedLayoutProps {
   theme: string;
 }
 
-const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({ toggleTheme, theme }) => {
+const ProtectedLayout: React.FC<ProtectedLayoutProps> = ({
+  toggleTheme,
+  theme,
+}) => {
   return (
     <AppLayout>
       <SideNav />

@@ -68,7 +68,8 @@ const Td = styled.td`
 `;
 
 const StatusBadge = styled.span<{ isActive: boolean }>`
-  background-color: ${({ isActive, theme }) => isActive ? '#28a745' : theme.disabled};
+  background-color: ${({ isActive, theme }) =>
+    isActive ? '#28a745' : theme.disabled};
   color: white;
   padding: 4px 8px;
   border-radius: 12px;
@@ -93,8 +94,8 @@ interface Permission {
 }
 
 interface User {
-    id: number;
-    username: string;
+  id: number;
+  username: string;
 }
 
 const TempAccessCodePage: React.FC = () => {
@@ -113,11 +114,18 @@ const TempAccessCodePage: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const [codesResponse, permissionsResponse, usersResponse] = await Promise.all([
-        axios.get('/api/temp-codes', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/permissions', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/users', { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
+      const [codesResponse, permissionsResponse, usersResponse] =
+        await Promise.all([
+          axios.get('/api/temp-codes', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get('/api/permissions', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get('/api/users', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
       setCodes(codesResponse.data);
       setPermissions(permissionsResponse.data);
       setUsers(usersResponse.data);
@@ -137,12 +145,16 @@ const TempAccessCodePage: React.FC = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/temp-codes', {
-        permission_id: selectedPermission,
-        duration_minutes: duration,
-        use_type: useType,
-        user_id: selectedUser || null,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(
+        '/api/temp-codes',
+        {
+          permission_id: selectedPermission,
+          duration_minutes: duration,
+          use_type: useType,
+          user_id: selectedUser || null,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       showFlashMessage('Code generated successfully!', 'success');
       fetchData(); // Refresh list
     } catch (error) {
@@ -158,9 +170,13 @@ const TempAccessCodePage: React.FC = () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
-        await axios.post(`/api/temp-codes/${codeId}/revoke`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await axios.post(
+          `/api/temp-codes/${codeId}/revoke`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         showFlashMessage('Code revoked successfully.', 'success');
         fetchData(); // Refresh list
       } catch (error) {
@@ -173,7 +189,11 @@ const TempAccessCodePage: React.FC = () => {
   };
 
   if (loading) {
-    return <PageContainer><p>Loading...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading...</p>
+      </PageContainer>
+    );
   }
 
   return (
@@ -183,25 +203,48 @@ const TempAccessCodePage: React.FC = () => {
       <FormContainer onSubmit={handleGenerateCode}>
         <FormGroup>
           <Label>Permission</Label>
-          <FormSelect value={selectedPermission} onChange={(e) => setSelectedPermission(e.target.value)} required>
+          <FormSelect
+            value={selectedPermission}
+            onChange={(e) => setSelectedPermission(e.target.value)}
+            required
+          >
             <option value="">Select Permission</option>
-            {permissions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {permissions.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
           </FormSelect>
         </FormGroup>
         <FormGroup>
           <Label>Assign to User (Optional)</Label>
-          <FormSelect value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
+          <FormSelect
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+          >
             <option value="">All Users</option>
-            {users.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.username}
+              </option>
+            ))}
           </FormSelect>
         </FormGroup>
         <FormGroup>
           <Label>Duration (minutes)</Label>
-          <Input type="number" value={duration} onChange={(e) => setDuration(parseInt(e.target.value))} required />
+          <Input
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(parseInt(e.target.value))}
+            required
+          />
         </FormGroup>
         <FormGroup>
           <Label>Use Type</Label>
-          <FormSelect value={useType} onChange={(e) => setUseType(e.target.value)}>
+          <FormSelect
+            value={useType}
+            onChange={(e) => setUseType(e.target.value)}
+          >
             <option value="single-use">Single Use</option>
             <option value="multi-use">Multi-Use</option>
           </FormSelect>
@@ -223,7 +266,7 @@ const TempAccessCodePage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {codes.map(code => (
+          {codes.map((code) => (
             <tr key={code.id}>
               <Td>{code.code}</Td>
               <Td>{code.permission}</Td>
@@ -231,9 +274,20 @@ const TempAccessCodePage: React.FC = () => {
               <Td>{new Date(code.expiration).toLocaleString()}</Td>
               <Td>{code.use_type}</Td>
               <Td>{code.times_used}</Td>
-              <Td><StatusBadge isActive={code.is_active}>{code.is_active ? 'Active' : 'Inactive'}</StatusBadge></Td>
               <Td>
-                {code.is_active && <Button onClick={() => handleRevokeCode(code.id)} style={{backgroundColor: '#dc3545'}}>Revoke</Button>}
+                <StatusBadge isActive={code.is_active}>
+                  {code.is_active ? 'Active' : 'Inactive'}
+                </StatusBadge>
+              </Td>
+              <Td>
+                {code.is_active && (
+                  <Button
+                    onClick={() => handleRevokeCode(code.id)}
+                    style={{ backgroundColor: '#dc3545' }}
+                  >
+                    Revoke
+                  </Button>
+                )}
               </Td>
             </tr>
           ))}

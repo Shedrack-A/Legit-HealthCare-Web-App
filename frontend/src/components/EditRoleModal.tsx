@@ -53,13 +53,20 @@ interface EditRoleModalProps {
   onSave: (roleId: number, permissionIds: number[]) => void;
 }
 
-const EditRoleModal: React.FC<EditRoleModalProps> = ({ role, allPermissions, onClose, onSave }) => {
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>(role.permissions);
+const EditRoleModal: React.FC<EditRoleModalProps> = ({
+  role,
+  allPermissions,
+  onClose,
+  onSave,
+}) => {
+  const [selectedPermissions, setSelectedPermissions] = useState<number[]>(
+    role.permissions
+  );
 
   const handleCheckboxChange = (permissionId: number) => {
-    setSelectedPermissions(prev =>
+    setSelectedPermissions((prev) =>
       prev.includes(permissionId)
-        ? prev.filter(id => id !== permissionId)
+        ? prev.filter((id) => id !== permissionId)
         : [...prev, permissionId]
     );
   };
@@ -74,7 +81,7 @@ const EditRoleModal: React.FC<EditRoleModalProps> = ({ role, allPermissions, onC
         <h2>Edit Role: {role.name}</h2>
 
         <CheckboxContainer>
-          {allPermissions.map(p => (
+          {allPermissions.map((p) => (
             <CheckboxLabel key={p.id}>
               <input
                 type="checkbox"
@@ -88,7 +95,9 @@ const EditRoleModal: React.FC<EditRoleModalProps> = ({ role, allPermissions, onC
 
         <div>
           <button onClick={handleSave}>Save</button>
-          <button onClick={onClose} style={{ marginLeft: '1rem' }}>Cancel</button>
+          <button onClick={onClose} style={{ marginLeft: '1rem' }}>
+            Cancel
+          </button>
         </div>
       </ModalContent>
     </ModalBackdrop>

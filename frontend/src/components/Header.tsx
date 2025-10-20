@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { Sun, Moon, ArrowLeft, Bell, User, LogOut, Settings, FileText } from 'react-feather';
-import { useGlobalFilter, screeningYears } from '../contexts/GlobalFilterContext';
+import {
+  Sun,
+  Moon,
+  ArrowLeft,
+  Bell,
+  User,
+  LogOut,
+  Settings,
+  FileText,
+} from 'react-feather';
+import {
+  useGlobalFilter,
+  screeningYears,
+} from '../contexts/GlobalFilterContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 
@@ -90,7 +102,7 @@ const DropdownMenu = styled.div`
   padding: ${({ theme }) => theme.spacing.xs};
   width: 220px;
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
 const DropdownItem = styled(Link)`
@@ -136,7 +148,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
-  const { companySection, setCompanySection, screeningYear, setScreeningYear } = useGlobalFilter();
+  const { companySection, setCompanySection, screeningYear, setScreeningYear } =
+    useGlobalFilter();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -171,13 +184,14 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
     const path = location.pathname;
     // Exact match first
     if (pageTitles[path]) {
-        return pageTitles[path];
+      return pageTitles[path];
     }
     // Then check for dynamic paths
     if (path.startsWith('/edit-patient/')) return 'Edit Patient';
     if (path.startsWith('/consultation/form/')) return 'Consultation Form';
     if (path.startsWith('/test-results/')) return 'Test Result Form';
-    if (path.startsWith('/director-review/form/')) return 'Director Review Form';
+    if (path.startsWith('/director-review/form/'))
+      return 'Director Review Form';
     if (path.startsWith('/patient-report/view/')) return 'View Patient Report';
 
     // Fallback for nested routes
@@ -189,70 +203,86 @@ const Header: React.FC<HeaderProps> = ({ toggleTheme, theme }) => {
     return '';
   };
 
-  const showBackButton = location.pathname !== '/dashboard' && location.pathname !== '/';
+  const showBackButton =
+    location.pathname !== '/dashboard' && location.pathname !== '/';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
     <HeaderContainer>
       <HeaderLeft>
-        {showBackButton && (
+        {user && showBackButton && (
           <BackButton onClick={() => navigate(-1)} title="Go Back">
             <ArrowLeft size={20} />
           </BackButton>
         )}
-        <PageTitle>{getPageTitle()}</PageTitle>
+        {user && <PageTitle>{getPageTitle()}</PageTitle>}
       </HeaderLeft>
       <HeaderRight>
-        <FormSelect
-          value={companySection}
-          onChange={(e) => setCompanySection(e.target.value)}
-        >
-          <option value="DCP">DCP</option>
-          <option value="DCT">DCT</option>
-        </FormSelect>
-        <FormSelect
-          value={screeningYear}
-          onChange={(e) => setScreeningYear(parseInt(e.target.value))}
-        >
-          {screeningYears.map(year => <option key={year} value={year}>{year}</option>)}
-        </FormSelect>
+        {user && (
+          <>
+            <FormSelect
+              value={companySection}
+              onChange={(e) => setCompanySection(e.target.value)}
+            >
+              <option value="DCP">DCP</option>
+              <option value="DCT">DCT</option>
+            </FormSelect>
+            <FormSelect
+              value={screeningYear}
+              onChange={(e) => setScreeningYear(parseInt(e.target.value))}
+            >
+              {screeningYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </FormSelect>
+          </>
+        )}
         <HeaderButton onClick={toggleTheme} title="Toggle Theme">
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </HeaderButton>
-        <HeaderButton>
-          <Bell size={18} />
-        </HeaderButton>
-        <ProfileDropdownContainer ref={dropdownRef}>
-          <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
-            <User size={18} />
-            <span>{user?.firstName}</span>
-          </ProfileButton>
-          {dropdownOpen && (
-            <DropdownMenu>
-              <DropdownItem to="/my-report">
-                <FileText size={16} />
-                <span>My Report</span>
-              </DropdownItem>
-              <DropdownItem to="/manage-account">
-                <Settings size={16} />
-                <span>Manage Account</span>
-              </DropdownItem>
-              <DropdownButton onClick={logout}>
-                <LogOut size={16} />
-                <span>Logout</span>
-              </DropdownButton>
-            </DropdownMenu>
-          )}
-        </ProfileDropdownContainer>
+        {user && (
+          <>
+            <HeaderButton>
+              <Bell size={18} />
+            </HeaderButton>
+            <ProfileDropdownContainer ref={dropdownRef}>
+              <ProfileButton onClick={() => setDropdownOpen(!dropdownOpen)}>
+                <User size={18} />
+                <span>{user?.firstName}</span>
+              </ProfileButton>
+              {dropdownOpen && (
+                <DropdownMenu>
+                  <DropdownItem to="/my-report">
+                    <FileText size={16} />
+                    <span>My Report</span>
+                  </DropdownItem>
+                  <DropdownItem to="/manage-account">
+                    <Settings size={16} />
+                    <span>Manage Account</span>
+                  </DropdownItem>
+                  <DropdownButton onClick={logout}>
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </DropdownButton>
+                </DropdownMenu>
+              )}
+            </ProfileDropdownContainer>
+          </>
+        )}
       </HeaderRight>
     </HeaderContainer>
   );

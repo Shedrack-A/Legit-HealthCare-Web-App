@@ -1,7 +1,23 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, UserPlus, Clipboard, Droplet, UserCheck, FileText, Users, BookOpen, Settings, MessageSquare, User as UserIcon, Key, Shield, File, Mail, Image, Upload } from 'react-feather';
+import {
+  UserPlus,
+  Clipboard,
+  Droplet,
+  UserCheck,
+  FileText,
+  Users,
+  BookOpen,
+  MessageSquare,
+  User as UserIcon,
+  Key,
+  Shield,
+  File,
+  Mail,
+  Image,
+  Upload,
+} from 'react-feather';
 import { Link } from 'react-router-dom';
 
 const DashboardContainer = styled.div`
@@ -63,7 +79,11 @@ const navLinks = [
   { to: '/register-patient', icon: <UserPlus />, label: 'Register Patient' },
   { to: '/consultation', icon: <Clipboard />, label: 'Consultation' },
   { to: '/test-results', icon: <Droplet />, label: 'Test Results' },
-  { to: '/director-review/search', icon: <UserCheck />, label: "Director's Review" },
+  {
+    to: '/director-review/search',
+    icon: <UserCheck />,
+    label: "Director's Review",
+  },
   { to: '/patient-report/search', icon: <FileText />, label: 'Patient Report' },
   { to: '/view-patients', icon: <Users />, label: 'View Patients' },
   { to: '/view-records', icon: <BookOpen />, label: 'View Records' },
@@ -71,13 +91,29 @@ const navLinks = [
 ];
 
 const controlPanelLinks = [
-    { to: '/control-panel/user-management', icon: <UserIcon />, label: 'User Management' },
-    { to: '/control-panel/role-management', icon: <Key />, label: 'Role Management' },
-    { to: '/control-panel/temp-access-codes', icon: <Shield />, label: 'Temp Access Codes' },
-    { to: '/control-panel/audit-log', icon: <File />, label: 'Audit Log' },
-    { to: '/control-panel/email-config', icon: <Mail />, label: 'Email Config' },
-    { to: '/control-panel/branding', icon: <Image />, label: 'Branding' },
-    { to: '/control-panel/patient-upload', icon: <Upload />, label: 'Patient Upload' },
+  {
+    to: '/control-panel/user-management',
+    icon: <UserIcon />,
+    label: 'User Management',
+  },
+  {
+    to: '/control-panel/role-management',
+    icon: <Key />,
+    label: 'Role Management',
+  },
+  {
+    to: '/control-panel/temp-access-codes',
+    icon: <Shield />,
+    label: 'Temp Access Codes',
+  },
+  { to: '/control-panel/audit-log', icon: <File />, label: 'Audit Log' },
+  { to: '/control-panel/email-config', icon: <Mail />, label: 'Email Config' },
+  { to: '/control-panel/branding', icon: <Image />, label: 'Branding' },
+  {
+    to: '/control-panel/patient-upload',
+    icon: <Upload />,
+    label: 'Patient Upload',
+  },
 ];
 
 const DashboardPage: React.FC = () => {
@@ -88,9 +124,11 @@ const DashboardPage: React.FC = () => {
     <DashboardContainer>
       <Card>
         <CardTitle>Quick Actions</CardTitle>
-        <CardDescription>Select an action or option below to get started.</CardDescription>
+        <CardDescription>
+          Select an action or option below to get started.
+        </CardDescription>
         <QuickActionsGrid>
-          {navLinks.map(link => (
+          {navLinks.map((link) => (
             <ActionButton key={link.to} to={link.to}>
               {link.icon}
               <span>{link.label}</span>
@@ -102,9 +140,11 @@ const DashboardPage: React.FC = () => {
       {isAdmin && (
         <Card>
           <CardTitle>Control Panel</CardTitle>
-          <CardDescription>Manage system settings and user access.</CardDescription>
+          <CardDescription>
+            Manage system settings and user access.
+          </CardDescription>
           <QuickActionsGrid>
-            {controlPanelLinks.map(link => (
+            {controlPanelLinks.map((link) => (
               <ActionButton key={link.to} to={link.to}>
                 {link.icon}
                 <span>{link.label}</span>

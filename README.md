@@ -60,7 +60,23 @@ This is the official web application for **Legit HealthCare Services Ltd**, desi
 
     # Set up the database
     export FLASK_APP=backend/app.py
-    flask db upgrade
+
+    # This command applies the existing database migrations.
+    # It should be run from the root of the project.
+    python -m flask db upgrade --directory backend/migrations
+
+    # --- Database Migration Troubleshooting ---
+    # If `db upgrade` fails with an error like "Path doesn't exist: migrations",
+    # it means the migrations directory is missing. You can create it by running:
+    #
+    # 1. Initialize the migrations directory:
+    #    python -m flask db init --directory backend/migrations
+    #
+    # 2. Generate the initial migration (based on the current models):
+    #    python -m flask db migrate -m "Initial migration." --directory backend/migrations
+    #
+    # 3. Apply the migration:
+    #    python -m flask db upgrade --directory backend/migrations
 
     # Create the admin user (run from the project root)
     # Replace <password> with a secure password

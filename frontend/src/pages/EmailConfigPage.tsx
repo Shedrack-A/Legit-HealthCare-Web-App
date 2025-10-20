@@ -46,7 +46,7 @@ const SubmitButton = styled.button`
 const EmailConfigPage: React.FC = () => {
   const [config, setConfig] = useState({
     sender_email: '',
-    app_password: ''
+    app_password: '',
   });
 
   useEffect(() => {
@@ -55,9 +55,12 @@ const EmailConfigPage: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('/api/config/email', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setConfig({ sender_email: response.data.sender_email, app_password: '' });
+        setConfig({
+          sender_email: response.data.sender_email,
+          app_password: '',
+        });
       } catch (error) {
         console.error('Failed to fetch email config', error);
       }
@@ -74,10 +77,10 @@ const EmailConfigPage: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/config/email', config, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       alert('Email configuration saved successfully!');
-      setConfig(prev => ({ ...prev, app_password: '' })); // Clear password field
+      setConfig((prev) => ({ ...prev, app_password: '' })); // Clear password field
     } catch (error) {
       console.error('Failed to save email config:', error);
       alert('Failed to save email configuration.');
@@ -87,15 +90,31 @@ const EmailConfigPage: React.FC = () => {
   return (
     <PageContainer>
       <PageTitle>Email Service Configuration</PageTitle>
-      <p>Configure the Gmail account that will be used to send patient reports and other notifications.</p>
+      <p>
+        Configure the Gmail account that will be used to send patient reports
+        and other notifications.
+      </p>
       <Form onSubmit={handleSubmit}>
         <FormGroup>
           <FormLabel>Sender Email Address (Gmail)</FormLabel>
-          <FormInput type="email" name="sender_email" value={config.sender_email} onChange={handleChange} required />
+          <FormInput
+            type="email"
+            name="sender_email"
+            value={config.sender_email}
+            onChange={handleChange}
+            required
+          />
         </FormGroup>
         <FormGroup>
           <FormLabel>App Password</FormLabel>
-          <FormInput type="password" name="app_password" value={config.app_password} onChange={handleChange} required placeholder="Enter new app password" />
+          <FormInput
+            type="password"
+            name="app_password"
+            value={config.app_password}
+            onChange={handleChange}
+            required
+            placeholder="Enter new app password"
+          />
         </FormGroup>
         <SubmitButton type="submit">Save Configuration</SubmitButton>
       </Form>

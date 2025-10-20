@@ -60,17 +60,21 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient }) => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(`/api/consultations/${patient.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setFormData(response.data);
       } catch (error) {
-        console.log("No existing consultation data found.");
+        console.log('No existing consultation data found.');
       }
     };
     fetchData();
   }, [patient.id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -78,9 +82,13 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient }) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/consultations', { ...formData, patient_id: patient.id }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(
+        '/api/consultations',
+        { ...formData, patient_id: patient.id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert('Consultation saved successfully!');
     } catch (error) {
       console.error('Failed to save consultation:', error);
@@ -91,24 +99,41 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient }) => {
   const renderSelect = (name: string, options: string[], label: string) => (
     <FormGroup>
       <FormLabel>{label}</FormLabel>
-      <FormSelect name={name} value={formData[name] || ''} onChange={handleChange}>
+      <FormSelect
+        name={name}
+        value={formData[name] || ''}
+        onChange={handleChange}
+      >
         <option value="">Select...</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
       </FormSelect>
     </FormGroup>
   );
 
-  const renderInput = (name: string, label: string, type: string = "text") => (
+  const renderInput = (name: string, label: string, type: string = 'text') => (
     <FormGroup>
       <FormLabel>{label}</FormLabel>
-      <FormInput type={type} name={name} value={formData[name] || ''} onChange={handleChange} />
+      <FormInput
+        type={type}
+        name={name}
+        value={formData[name] || ''}
+        onChange={handleChange}
+      />
     </FormGroup>
   );
 
   const renderTextArea = (name: string, label: string) => (
-      <FormGroup style={{ gridColumn: '1 / -1' }}>
-          <FormLabel>{label}</FormLabel>
-          <FormTextArea name={name} value={formData[name] || ''} onChange={handleChange} />
+    <FormGroup style={{ gridColumn: '1 / -1' }}>
+      <FormLabel>{label}</FormLabel>
+      <FormTextArea
+        name={name}
+        value={formData[name] || ''}
+        onChange={handleChange}
+      />
     </FormGroup>
   );
 
@@ -123,23 +148,84 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ patient }) => {
       {renderSelect('jaundice', ['Yes', 'No'], 'Jaundice')}
       {renderSelect('murmur', ['Yes', 'No'], 'Murmur')}
       {renderSelect('chest', ['Clinically Clear', 'Not Clear'], 'Chest')}
-      {renderSelect('prostrate_specific_antigen', ['Negative', 'Positive', 'Not Applicable'], 'Prostrate-Specific Antigen - PSA')}
+      {renderSelect(
+        'prostrate_specific_antigen',
+        ['Negative', 'Positive', 'Not Applicable'],
+        'Prostrate-Specific Antigen - PSA'
+      )}
       {renderInput('psa_remark', 'PSA Remark')}
       {renderSelect('fbs', ['Not Applicable'], 'FBS')}
       {renderSelect('rbs', ['Not Applicable'], 'RBS')}
-      {renderSelect('fbs_rbs_remark', ['Normal', 'Abnormal', 'Maybe Abnormal'], 'FBS/RBS Remark')}
-      {renderSelect('urine_analysis', ['No Abnormality', 'Proteinuria', 'Proteinuria+', 'Proteinuria >+', 'Glucosuria', 'Glucosuria+', 'Glucosuria >+', 'Proteinuria/Glucosuria'], 'Urine Analysis')}
-      {renderSelect('ua_remark', ['Normal', 'Abdormal', 'Maybe Abnormal'], 'U/A Remark')}
-      {renderSelect('diabetes_mellitus', ['Yes - On Regular Medication', 'Yes - Not on Regular Medication', 'Yes - Not on Medication', 'No'], 'Diabetes Mellitus - DM')}
-      {renderSelect('hypertension', ['Yes - On Regular Medication', 'Yes - Not on Regular Medication', 'Yes - Not on Medication', 'No'], 'Hypertension - HTM')}
+      {renderSelect(
+        'fbs_rbs_remark',
+        ['Normal', 'Abnormal', 'Maybe Abnormal'],
+        'FBS/RBS Remark'
+      )}
+      {renderSelect(
+        'urine_analysis',
+        [
+          'No Abnormality',
+          'Proteinuria',
+          'Proteinuria+',
+          'Proteinuria >+',
+          'Glucosuria',
+          'Glucosuria+',
+          'Glucosuria >+',
+          'Proteinuria/Glucosuria',
+        ],
+        'Urine Analysis'
+      )}
+      {renderSelect(
+        'ua_remark',
+        ['Normal', 'Abdormal', 'Maybe Abnormal'],
+        'U/A Remark'
+      )}
+      {renderSelect(
+        'diabetes_mellitus',
+        [
+          'Yes - On Regular Medication',
+          'Yes - Not on Regular Medication',
+          'Yes - Not on Medication',
+          'No',
+        ],
+        'Diabetes Mellitus - DM'
+      )}
+      {renderSelect(
+        'hypertension',
+        [
+          'Yes - On Regular Medication',
+          'Yes - Not on Regular Medication',
+          'Yes - Not on Medication',
+          'No',
+        ],
+        'Hypertension - HTM'
+      )}
       {renderInput('bp', 'B.P')}
       {renderInput('pulse', 'PULSE - b/m')}
       {renderInput('spo2', 'SPO2%')}
       {renderSelect('hs', ['Present', 'S3 Present', 'S4 Present'], 'HS: 1&2')}
-      {renderSelect('breast_exam', ['Not Applicable', 'Normal', 'Abdormal'], 'Breast Exam')}
-      {renderSelect('breast_exam_remark', ['Normal', 'Not Applicable'], 'Breast Exam Remark')}
+      {renderSelect(
+        'breast_exam',
+        ['Not Applicable', 'Normal', 'Abdormal'],
+        'Breast Exam'
+      )}
+      {renderSelect(
+        'breast_exam_remark',
+        ['Normal', 'Not Applicable'],
+        'Breast Exam Remark'
+      )}
       {renderSelect('abdomen', ['Normal', 'Abnormal'], 'Abdomen')}
-      {renderSelect('assessment_hx_pe', ['Satisfactory', 'Elevated BP', 'Poorly Controled HTN', 'Known DM', 'Bladder Outlet Obstruction'], 'Assessment - HX/PE')}
+      {renderSelect(
+        'assessment_hx_pe',
+        [
+          'Satisfactory',
+          'Elevated BP',
+          'Poorly Controled HTN',
+          'Known DM',
+          'Bladder Outlet Obstruction',
+        ],
+        'Assessment - HX/PE'
+      )}
 
       {renderTextArea('other_assessments', 'Other Assessments')}
       {renderTextArea('overall_lab_remark', 'Overall Lab Remark')}

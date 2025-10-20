@@ -19,7 +19,7 @@ const PatientHeader = styled.div`
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 `;
 
 interface PatientData {
@@ -43,11 +43,11 @@ const ConsultationFormPage: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(`/api/patient/${staffId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setPatient(response.data);
       } catch (error) {
-        console.error("Could not fetch patient details", error);
+        console.error('Could not fetch patient details', error);
         setPatient(null);
       } finally {
         setLoading(false);
@@ -69,8 +69,13 @@ const ConsultationFormPage: React.FC = () => {
       <PageTitle>Doctor's Consultation</PageTitle>
 
       <PatientHeader>
-        <h2>{patient.first_name} {patient.last_name}</h2>
-        <p>Staff ID: {patient.staff_id} | Department: {patient.department} | Age: {patient.age}</p>
+        <h2>
+          {patient.first_name} {patient.last_name}
+        </h2>
+        <p>
+          Staff ID: {patient.staff_id} | Department: {patient.department} | Age:{' '}
+          {patient.age}
+        </p>
       </PatientHeader>
 
       <GenericTestResultForm
