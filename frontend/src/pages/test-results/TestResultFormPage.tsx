@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { TEST_TYPE_CONFIG } from '../../data/constants';
 import GenericTestResultForm from '../../components/GenericTestResultForm';
@@ -36,6 +36,7 @@ const TestResultFormPage: React.FC = () => {
     testType: string;
     staffId: string;
   }>();
+  const navigate = useNavigate();
   const testConfig = testType ? TEST_TYPE_CONFIG[testType] : null;
 
   const [patient, setPatient] = useState<PatientData | null>(null);
@@ -135,6 +136,7 @@ const TestResultFormPage: React.FC = () => {
         fetchEndpoint={apiEndpoint}
         title={testConfig.name}
         calculations={getCalculations()}
+        onSuccess={() => navigate('/test-results')}
       />
     </PageContainer>
   );

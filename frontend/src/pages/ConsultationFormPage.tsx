@@ -1,91 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { CONSULTATION_FIELDS } from '../data/constants';
-import GenericTestResultForm from '../components/GenericTestResultForm';
-
-const PageContainer = styled.div`
-  padding: 2rem;
-`;
-
-const PageTitle = styled.h1`
-  color: ${({ theme }) => theme.main};
-  margin-bottom: 2rem;
-`;
-
-const PatientHeader = styled.div`
-  background-color: ${({ theme }) => theme.cardBg};
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-`;
-
-interface PatientData {
-  id: number;
-  staff_id: string;
-  first_name: string;
-  last_name: string;
-  department: string;
-  age: number;
-}
+import ConsultationForm from '../components/ConsultationForm';
 
 const ConsultationFormPage: React.FC = () => {
   const { staffId } = useParams<{ staffId: string }>();
-  const [patient, setPatient] = useState<PatientData | null>(null);
+  const navigate = useNavigate();
+  const [patient, setPatient] = useState<any>(null);
+  const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPatientDetails = async () => {
-      if (!staffId) return;
-      setLoading(true);
+    const fetchPatientAndConsultation = async () => {
+      const token = localStorage.getItem('token');
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/patient/${staffId}`, {
+        const patientRes = await axios.get(`/api/patients?staff_id=${staffId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setPatient(response.data);
+        setPatient(patientRes.data);
+
+        const consultationRes = await axios.get(`/api/consultations/${staffId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setInitialData(consultationRes.data);
       } catch (error) {
-        console.error('Could not fetch patient details', error);
-        setPatient(null);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchPatientDetails();
+    fetchPatientAndConsultation();
   }, [staffId]);
 
-  if (loading) {
-    return <p>Loading patient details...</p>;
-  }
+  const handleSubmit = async (data: any) => {
+    const token = localStorage.getItem('token');
+    await axios.post('/api/consultations', { ...data, staff_id: staffId }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    navigate('/consultation');
+  };
 
-  if (!patient) {
-    return <p>Could not load patient details.</p>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (!patient) return <div>Patient not found</div>;
 
   return (
-    <PageContainer>
-      <PageTitle>Doctor's Consultation</PageTitle>
-
-      <PatientHeader>
-        <h2>
-          {patient.first_name} {patient.last_name}
-        </h2>
-        <p>
-          Staff ID: {patient.staff_id} | Department: {patient.department} | Age:{' '}
-          {patient.age}
-        </p>
-      </PatientHeader>
-
-      <GenericTestResultForm
-        patientId={staffId || ''}
-        formFields={CONSULTATION_FIELDS}
-        apiEndpoint={`/api/consultations`}
-        fetchEndpoint={`/api/consultations/${staffId}`}
-        title="Consultation"
-      />
-    </PageContainer>
+    <div>
+      <h2>Consultation for {patient.first_name} {patient.last_name}</h2>
+      <ConsultationForm patient={patient} onSuccess={() => navigate('/consultation')} />
+    </div>
   );
 };
 
